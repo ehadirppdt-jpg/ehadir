@@ -93,7 +93,7 @@ export const INITIAL_ZONES: Zone[] = [
     id: 'zone-z06',
     code: 'Z06',
     name: 'ZON TAMPARULI',
-    color_hex: '#DC2626',
+    color_hex: '#059669', // Emerald Green (No longer red as requested)
     description: 'Zon Pentadbiran Sekolah Kawasan Tamparuli',
     is_active: true,
     total_schools: 14,
@@ -635,7 +635,21 @@ function saveToStorage<T>(key: string, data: T): void {
 export const dbService = {
   // --- ZONES ---
   getZones(): Zone[] {
-    const zones = loadFromStorage<Zone[]>('zones', INITIAL_ZONES);
+    let zones = loadFromStorage<Zone[]>('zones', INITIAL_ZONES);
+
+    // Auto-migrate Z06 from old red #DC2626 to emerald green #059669 if needed
+    let hasUpdatedColor = false;
+    zones = zones.map((z) => {
+      if (z.code === 'Z06' && z.color_hex.toLowerCase() === '#dc2626') {
+        hasUpdatedColor = true;
+        return { ...z, color_hex: '#059669' };
+      }
+      return z;
+    });
+    if (hasUpdatedColor) {
+      saveToStorage('zones', zones);
+    }
+
     const schools = this.getSchools();
     const users = this.getUsers();
 
@@ -1341,3 +1355,4 @@ export const dbService = {
     };
   },
 };
+

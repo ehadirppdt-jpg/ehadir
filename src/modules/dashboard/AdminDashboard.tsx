@@ -312,3 +312,4 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     </div>
   );
 };
+

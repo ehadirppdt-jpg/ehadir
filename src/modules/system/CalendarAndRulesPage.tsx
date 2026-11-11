@@ -256,3 +256,4 @@ export const CalendarAndRulesPage: React.FC = () => {
     </div>
   );
 };
+

@@ -247,3 +247,4 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
     </div>
   );
 };
+

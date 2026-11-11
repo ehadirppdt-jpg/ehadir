@@ -31,3 +31,4 @@ Dokumen ini merangkumi matriks ujian fungsian, keselamatan peranan, dan pengesah
 3. **Kekebalan Rekod Audit Logs:**
    - Cuba laksanakan perintah `UPDATE` atau `DELETE` ke atas jadual `audit_logs`.
    - *Jangkaan:* Polisi RLS menyekat transaksi dengan ralat kebenaran ditolak (append-only).
+

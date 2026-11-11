@@ -44,3 +44,4 @@ export function logAuditEvent(params: {
   localStorage.setItem(AUDIT_STORAGE_KEY, JSON.stringify(updatedLogs.slice(0, 1000)));
   return newLog;
 }
+

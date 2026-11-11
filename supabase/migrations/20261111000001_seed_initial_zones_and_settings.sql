@@ -22,7 +22,7 @@ VALUES
     ('Z03', 'ZON SULAMAN', '#2563EB', 'Zon Pentadbiran Sekolah Kawasan Sulaman', TRUE),
     ('Z04', 'ZON KIULU', '#7C3AED', 'Zon Pentadbiran Sekolah Kawasan Kiulu', TRUE),
     ('Z05', 'ZON NABALU', '#D97706', 'Zon Pentadbiran Sekolah Kawasan Nabalu', TRUE),
-    ('Z06', 'ZON TAMPARULI', '#DC2626', 'Zon Pentadbiran Sekolah Kawasan Tamparuli', TRUE)
+    ('Z06', 'ZON TAMPARULI', '#059669', 'Zon Pentadbiran Sekolah Kawasan Tamparuli', TRUE)
 ON CONFLICT (code) DO UPDATE SET
     name = EXCLUDED.name,
     color_hex = EXCLUDED.color_hex,
@@ -64,3 +64,4 @@ VALUES
 ON CONFLICT (key) DO UPDATE SET
     value = EXCLUDED.value,
     description = EXCLUDED.description;
+

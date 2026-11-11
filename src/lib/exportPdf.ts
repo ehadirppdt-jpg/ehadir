@@ -66,3 +66,4 @@ export function exportToPdf(options: {
 
   doc.save(`${options.fileName}_${new Date().toISOString().slice(0, 10)}.pdf`);
 }
+

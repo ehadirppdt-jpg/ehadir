@@ -267,3 +267,4 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleMobileMenu, onNavigate }
     </header>
   );
 };
+

@@ -200,18 +200,57 @@ export const SchoolMapPage: React.FC = () => {
         {/* Right Side: Interactive Geofence Map View */}
         <div className="lg:col-span-2 space-y-4">
           {selectedSchool ? (
-            <InteractiveGeofenceMap
-              latitude={editLat}
-              longitude={editLng}
-              radiusMeters={editRadius}
-              schoolName={selectedSchool.name}
-              isEditable={isSuperAdmin}
-              onRadiusChange={(r) => setEditRadius(r)}
-              onCoordinatesChange={(lat, lng) => {
-                setEditLat(lat);
-                setEditLng(lng);
-              }}
-            />
+            <>
+              <InteractiveGeofenceMap
+                latitude={editLat}
+                longitude={editLng}
+                radiusMeters={editRadius}
+                schoolName={selectedSchool.name}
+                isEditable={isSuperAdmin}
+                onRadiusChange={(r) => setEditRadius(r)}
+                onCoordinatesChange={(lat, lng) => {
+                  setEditLat(lat);
+                  setEditLng(lng);
+                }}
+              />
+
+              {/* Exact Location & Profile Summary Card */}
+              <div className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-900">{selectedSchool.name}</span>
+                    <Badge variant="primary" size="sm">{selectedSchool.code}</Badge>
+                    <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Lokasi GPS Disahkan
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">{selectedSchool.address || 'Tuaran, Sabah'}</p>
+                  <p className="text-[11px] text-slate-400 font-mono">
+                    Latitud: {editLat.toFixed(6)} | Longitud: {editLng.toFixed(6)} | Perimeter: {editRadius}m
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${editLat},${editLng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-sm"
+                  >
+                    <span>Google Maps</span>
+                  </a>
+                  <a
+                    href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${editLat},${editLng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all border border-slate-200"
+                  >
+                    <span>Street View</span>
+                  </a>
+                </div>
+              </div>
+            </>
           ) : (
             <div className="h-96 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 text-xs">
               Sila pilih sekolah untuk melihat peta geofence
@@ -222,3 +261,4 @@ export const SchoolMapPage: React.FC = () => {
     </div>
   );
 };
+

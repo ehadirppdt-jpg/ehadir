@@ -487,3 +487,4 @@ CREATE INDEX IF NOT EXISTS idx_monthly_attendance_status ON public.monthly_atten
 CREATE INDEX IF NOT EXISTS idx_notifications_recipient ON public.notifications(recipient_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_actor ON public.audit_logs(actor_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_entity ON public.audit_logs(entity, record_id);
+

@@ -229,3 +229,4 @@ export const NotificationCentrePage: React.FC<NotificationCentrePageProps> = ({
     </div>
   );
 };
+

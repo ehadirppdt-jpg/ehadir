@@ -44,3 +44,4 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ currentPath, onNavigat
     </nav>
   );
 };
+

@@ -196,3 +196,4 @@ const Building2Icon = (props: any) => (
     <path d="M10 18h4"/>
   </svg>
 );
+

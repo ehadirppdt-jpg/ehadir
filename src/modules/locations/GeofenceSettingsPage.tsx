@@ -138,3 +138,4 @@ export const GeofenceSettingsPage: React.FC = () => {
     </div>
   );
 };
+

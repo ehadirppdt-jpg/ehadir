@@ -59,3 +59,4 @@ Dipanggil secara berjadual (Cron Job) pada setiap 1 hari bulan untuk mengagregat
   "executed_at": "2026-11-01T00:00:00.000Z"
 }
 ```
+

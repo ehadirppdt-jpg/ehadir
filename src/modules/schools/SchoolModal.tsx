@@ -297,3 +297,4 @@ export const SchoolModal: React.FC<SchoolModalProps> = ({
     </Modal>
   );
 };
+

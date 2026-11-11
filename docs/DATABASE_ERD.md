@@ -72,3 +72,4 @@ erDiagram
 | 25 | `audit_logs` | Tamper-proof security audit log | Old vs New values JSONB, immutable |
 | 26 | `risk_alerts` | Automated anomaly detection | Geofence breach, mock GPS, unassigned |
 | 27 | `submission_jobs` | Cron job execution history | Tracks batch monthly generation |
+

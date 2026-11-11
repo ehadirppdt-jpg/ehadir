@@ -55,3 +55,4 @@ export function isWithinGeofence(
 export function isValidGeofenceRadius(radius: number): boolean {
   return Number.isInteger(radius) && radius >= 50 && radius <= 500;
 }
+

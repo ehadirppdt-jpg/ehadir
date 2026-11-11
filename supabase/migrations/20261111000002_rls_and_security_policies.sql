@@ -192,3 +192,4 @@ CREATE POLICY "Audit logs cannot be deleted"
 ON public.audit_logs FOR DELETE
 TO authenticated
 USING (FALSE);
+

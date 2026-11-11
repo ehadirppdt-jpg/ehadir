@@ -246,3 +246,4 @@ export interface DashboardStats {
   pendingMonthlyVerificationCount: number;
   unassignedApproverCount: number;
 }
+

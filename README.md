@@ -47,7 +47,7 @@ eHadir/
 | **Z03** | **ZON SULAMAN** | `#2563EB` (Royal Blue) | Kawasan Sulaman & Pekan Tuaran |
 | **Z04** | **ZON KIULU** | `#7C3AED` (Purple) | Kawasan Lembah Kiulu & Bukit |
 | **Z05** | **ZON NABALU** | `#D97706` (Amber) | Kawasan Kaki Gunung Kinabalu / Nabalu |
-| **Z06** | **ZON TAMPARULI** | `#DC2626` (Crimson) | Kawasan Pekan Tamparuli & Sekitar |
+| **Z06** | **ZON TAMPARULI** | `#059669` (Emerald Green) | Kawasan Pekan Tamparuli & Sekitar |
 
 > **Peraturan Integriti Zon:** Sekolah tidak diagihkan secara automatik. Ketua Pentadbir (Head Admin) menetapkan sekolah ke dalam zon masing-masing secara manual atau melalui fail import CSV/Excel. Setiap sekolah hanya mempunyai satu (1) zon aktif pada satu-satu masa.
 
@@ -136,3 +136,4 @@ Di laman log masuk (`/admin/login`), butang ujian pantas telah disediakan untuk 
    - **Build output directory:** `dist`
 3. Masukkan pemboleh ubah persekitaran (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GOOGLE_MAPS_API_KEY`).
 4. Tekan **Deploy**.
+

@@ -439,3 +439,4 @@ export const SchoolManagementPage: React.FC<SchoolManagementPageProps> = ({
     </div>
   );
 };
+

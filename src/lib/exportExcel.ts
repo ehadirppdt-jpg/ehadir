@@ -26,3 +26,4 @@ export function parseExcelOrCsv(file: File): Promise<any[]> {
     reader.readAsBinaryString(file);
   });
 }
+

@@ -294,3 +294,4 @@ export const AttendanceMonitoringPage: React.FC = () => {
     </div>
   );
 };
+

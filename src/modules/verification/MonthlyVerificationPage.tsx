@@ -313,3 +313,4 @@ export const MonthlyVerificationPage: React.FC = () => {
     </div>
   );
 };
+

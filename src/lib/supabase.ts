@@ -6,7 +6,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'mock-anon-key
 export const isSupabaseConfigured = 
   Boolean(import.meta.env.VITE_SUPABASE_URL) && 
   Boolean(import.meta.env.VITE_SUPABASE_ANON_KEY) && 
-  import.meta.env.VITE_SUPABASE_URL !== 'https://your-project-id.supabase.co';
+  !import.meta.env.VITE_SUPABASE_URL.includes('your-project-id');
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

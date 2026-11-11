@@ -12,7 +12,6 @@ import {
   CalendarCheck,
   UserCheck,
   Calendar,
-  Sliders,
   Bell,
   FileSpreadsheet,
   FileText,
@@ -144,12 +143,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           path: '/admin/system/calendar',
           icon: <Calendar className="w-4 h-4" />,
           visible: true,
-        },
-        {
-          label: 'Peraturan Kehadiran',
-          path: '/admin/system/rules',
-          icon: <Sliders className="w-4 h-4" />,
-          visible: isSuperAdmin || isMonitoring,
         },
         {
           label: 'Notification Centre',

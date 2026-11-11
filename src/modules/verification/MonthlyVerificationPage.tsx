@@ -8,7 +8,7 @@ import {
   FileCheck2,
   Filter,
   Eye,
-  FileSpreadsheet,
+  FileText,
   AlertCircle,
   ShieldCheck,
 } from 'lucide-react';
@@ -20,7 +20,7 @@ import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { SearchInput } from '@/components/common/SearchInput';
 import { EmptyState } from '@/components/common/EmptyState';
-import { exportToExcel } from '@/lib/exportExcel';
+import { exportToPdf } from '@/lib/exportPdf';
 import { MonthlyDetailReviewModal } from './MonthlyDetailReviewModal';
 
 export const MonthlyVerificationPage: React.FC = () => {
@@ -89,22 +89,27 @@ export const MonthlyVerificationPage: React.FC = () => {
   };
 
   const handleExport = () => {
-    const data = filteredRecords.map((r) => ({
-      Bulan: r.month,
-      Tahun: r.year,
-      Nama_PGB: r.pgb_name,
-      Sekolah: r.school_name,
-      Kod_Sekolah: r.school_code,
-      Zon: r.zone_name,
-      Hari_Bekerja: r.total_working_days,
-      Hari_Hadir: r.present_days,
-      Hari_Lewat: r.late_days,
-      Jumlah_Jam: r.total_hours_rendered,
-      Status: r.status,
-      Pegawai_Pengesah: r.assigned_approver_name || 'Admin Zon',
-    }));
-    exportToExcel(data, `Laporan_Pengesahan_Bulanan_${selectedMonth}_${selectedYear}`, 'Pengesahan');
-    showToast('Laporan berjaya dieksport ke Excel.', 'success');
+    const MONTH_NAMES = ['', 'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun', 'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'];
+    const monthName = MONTH_NAMES[selectedMonth] || `Bulan ${selectedMonth}`;
+
+    exportToPdf({
+      title: `Laporan Status Pengesahan Kehadiran Bulanan (${monthName} ${selectedYear})`,
+      subtitle: `Status: ${selectedStatus === 'ALL' ? 'Semua Status' : selectedStatus} | Jumlah Rekod: ${filteredRecords.length}`,
+      headers: ['Bil', 'Nama PGB', 'Sekolah', 'Kod', 'Zon', 'Hadir / Kerja', 'Jumlah Jam', 'Status', 'Pegawai Pengesah'],
+      rows: filteredRecords.map((r, idx) => [
+        idx + 1,
+        r.pgb_name,
+        r.school_name,
+        r.school_code,
+        r.zone_name,
+        `${r.present_days} / ${r.total_working_days} Hari`,
+        `${r.total_hours_rendered} Jam`,
+        r.status,
+        r.assigned_approver_name || 'Admin Zon',
+      ]),
+      fileName: `Laporan_Pengesahan_Bulanan_${selectedMonth}_${selectedYear}.pdf`,
+    });
+    showToast('Laporan status pengesahan bulanan berjaya dieksport ke PDF.', 'success');
   };
 
   const getStatusBadge = (status: MonthlyStatusType) => {
@@ -142,9 +147,9 @@ export const MonthlyVerificationPage: React.FC = () => {
           variant="outline"
           size="sm"
           onClick={handleExport}
-          icon={<FileSpreadsheet className="w-4 h-4 text-emerald-600" />}
+          icon={<FileText className="w-4 h-4 text-rose-600" />}
         >
-          Eksport Status Bulanan
+          Eksport Status Bulanan (PDF)
         </Button>
       </div>
 
@@ -155,8 +160,8 @@ export const MonthlyVerificationPage: React.FC = () => {
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 text-center text-[10px]">
           <div className="p-2 rounded-lg bg-white border border-blue-100 shadow-xs">
-            <span className="font-extrabold text-blue-600 block mb-0.5">1. Auto-Jana</span>
-            <span className="text-slate-600">Laporan dijana 1hb</span>
+            <span className="font-extrabold text-blue-600 block mb-0.5">1. Buka Semakan</span>
+            <span className="text-slate-600">Awal bulan dibuka</span>
           </div>
           <div className="p-2 rounded-lg bg-white border border-blue-100 shadow-xs">
             <span className="font-extrabold text-blue-600 block mb-0.5">2. Semak Rekod</span>

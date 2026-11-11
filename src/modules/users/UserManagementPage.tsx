@@ -149,7 +149,7 @@ export const UserManagementPage: React.FC = () => {
             Pengurusan Akaun Pengetua & Guru Besar (PGB)
           </h2>
           <p className="text-xs text-slate-500 mt-1">
-            Pengurusan profil identiti, penugasan sekolah, kawalan peranti dan status pendaftaran wajah biometrik.
+            Pengurusan profil identiti, penugasan sekolah, dan status pendaftaran wajah biometrik.
           </p>
         </div>
 
@@ -228,7 +228,7 @@ export const UserManagementPage: React.FC = () => {
                   <th className="px-4 py-3.5">No. Kad Pengenalan</th>
                   <th className="px-4 py-3.5">Sekolah Bertugas</th>
                   <th className="px-4 py-3.5">Hubungi</th>
-                  <th className="px-4 py-3.5">Biometrik & Peranti</th>
+                  <th className="px-4 py-3.5">Status Biometrik</th>
                   <th className="px-4 py-3.5">Status Akaun</th>
                   {isSuperAdmin && <th className="px-5 py-3.5 text-right">Tindakan</th>}
                 </tr>
@@ -262,22 +262,13 @@ export const UserManagementPage: React.FC = () => {
                     </td>
 
                     <td className="px-4 py-3.5">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200"
-                          title="Wajah biometrik telah didaftarkan dan disahkan"
-                        >
-                          <ScanFace className="w-3 h-3 text-emerald-600" />
-                          Wajah Sah
-                        </span>
-                        <span
-                          className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200"
-                          title="Peranti telefon pintar diluluskan"
-                        >
-                          <Smartphone className="w-3 h-3 text-blue-600" />
-                          1 Peranti
-                        </span>
-                      </div>
+                      <span
+                        className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        title="Wajah biometrik telah didaftarkan dan disahkan"
+                      >
+                        <ScanFace className="w-3 h-3 text-emerald-600" />
+                        Wajah Sah
+                      </span>
                     </td>
 
                     <td className="px-4 py-3.5">

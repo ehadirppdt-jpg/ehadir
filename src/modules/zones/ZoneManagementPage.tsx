@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import {
   Layers,
-  Plus,
   Edit2,
   Power,
   Users,
@@ -110,17 +109,6 @@ export const ZoneManagementPage: React.FC = () => {
             Konfigurasi pecahan 6 zon rasmi, penetapan Pegawai Admin Zon, dan pemantauan jumlah sekolah.
           </p>
         </div>
-
-        {isSuperAdmin && (
-          <Button
-            variant="primary"
-            size="md"
-            onClick={handleCreate}
-            icon={<Plus className="w-4 h-4" />}
-          >
-            Tambah Zon Baharu
-          </Button>
-        )}
       </div>
 
       {/* Toolbar */}

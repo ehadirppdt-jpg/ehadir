@@ -144,17 +144,6 @@ export const NotificationCentrePage: React.FC<NotificationCentrePageProps> = ({
         >
           Penyerahan Bulanan
         </button>
-
-        <button
-          onClick={() => setCategoryFilter('DEVICE_REQUEST')}
-          className={`px-3 py-1.5 rounded-lg border transition-all ${
-            categoryFilter === 'DEVICE_REQUEST'
-              ? 'bg-purple-600 text-white border-purple-600 font-bold'
-              : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
-          }`}
-        >
-          Pertukaran Peranti
-        </button>
       </div>
 
       {/* Notifications List */}

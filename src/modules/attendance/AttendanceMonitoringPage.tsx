@@ -11,6 +11,7 @@ import {
   Calendar,
   Building,
   School as SchoolIcon,
+  Info,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -119,6 +120,14 @@ export const AttendanceMonitoringPage: React.FC = () => {
         >
           Eksport Rekod Harian
         </Button>
+      </div>
+
+      {/* Dasar Kehadiran Fleksi PGB (9 Jam) Banner */}
+      <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200/80 flex items-center gap-3 text-xs text-blue-900 shadow-xs">
+        <Info className="w-4 h-4 text-blue-600 shrink-0" />
+        <span className="leading-relaxed">
+          <strong>Peraturan Kehadiran PGB:</strong> Tiada masa rasmi clock-in ditetapkan (fleksi). Kehadiran dikira sah dan lengkap sebaik sahaja mencukupi tempoh bertugas minimum <strong>9 jam (540 minit)</strong> sehari.
+        </span>
       </div>
 
       {/* Filter Toolbar */}
@@ -249,9 +258,17 @@ export const AttendanceMonitoringPage: React.FC = () => {
                         <div className="font-bold text-slate-800">
                           {hours} jam {mins} min
                         </div>
-                        {rec.late_minutes > 0 && (
-                          <span className="text-[10px] font-semibold text-rose-600">
-                            Lewat: +{rec.late_minutes} min
+                        {rec.total_working_minutes >= 540 ? (
+                          <span className="text-[10px] font-semibold text-emerald-600 block">
+                            ✓ Cukup 9 Jam
+                          </span>
+                        ) : rec.clock_out_time ? (
+                          <span className="text-[10px] font-semibold text-amber-600 block">
+                            Kurang {540 - rec.total_working_minutes} min
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-slate-400 block">
+                            Sasaran: 9 Jam
                           </span>
                         )}
                       </td>

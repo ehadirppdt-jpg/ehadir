@@ -207,11 +207,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
           onClick={() => onNavigate('/admin/attendance/monitoring')}
         />
 
-        {/* 5. Lewat Hadir */}
+        {/* 5. Kurang 9 Jam Bekerja */}
         <StatCard
-          title="5. Lewat Hadir"
+          title="5. Kurang 9 Jam Bekerja"
           value={stats.lateTodayCount}
-          subtitle="Selepas Toleransi 07:45 AM"
+          subtitle="Sasaran Wajib: 9 Jam (Fleksi)"
           icon={<AlertTriangle className="w-5 h-5" />}
           variant="rose"
           onClick={() => onNavigate('/admin/attendance/monitoring')}

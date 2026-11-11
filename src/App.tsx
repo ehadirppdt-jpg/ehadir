@@ -17,7 +17,6 @@ import { JustificationReviewPage } from '@/modules/attendance/JustificationRevie
 import { MonthlyVerificationPage } from '@/modules/verification/MonthlyVerificationPage';
 import { ApproverAssignmentPage } from '@/modules/approver-assignments/ApproverAssignmentPage';
 import { CalendarAndRulesPage } from '@/modules/system/CalendarAndRulesPage';
-import { AttendanceRulesPage } from '@/modules/system/AttendanceRulesPage';
 import { NotificationCentrePage } from '@/modules/system/NotificationCentrePage';
 import { ReportsAnalyticsPage } from '@/modules/system/ReportsAnalyticsPage';
 import { AuditLogsPage } from '@/modules/system/AuditLogsPage';
@@ -105,8 +104,6 @@ const MainApp: React.FC = () => {
         return <ApproverAssignmentPage />;
       case '/admin/system/calendar':
         return <CalendarAndRulesPage />;
-      case '/admin/system/rules':
-        return <AttendanceRulesPage />;
       case '/admin/notifications':
         return <NotificationCentrePage onNavigate={setCurrentPath} />;
       case '/admin/reports':

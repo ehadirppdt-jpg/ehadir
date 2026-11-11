@@ -14,28 +14,14 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS assigned_zone_ids TEXT[];
 
 -- 3. Trigger automatik apabila pengguna dicipta dalam Supabase Authentication (auth.users)
--- Memastikan akaun yang dicipta dalam Supabase Dashboard secara automatik menjadi SUPER_ADMIN
+-- Memastikan akaun yang dicipta dalam Supabase Dashboard menjadi SUPER_ADMIN secara kalis ralat
 CREATE OR REPLACE FUNCTION public.handle_new_auth_user()
-RETURNS trigger AS $$
-DECLARE
-  v_role user_role_type;
-  v_role_id UUID;
-  v_count INT;
+RETURNS trigger 
+LANGUAGE plpgsql 
+SECURITY DEFINER 
+SET search_path = public, auth
+AS $$
 BEGIN
-  -- Kira bilangan profil sedia ada
-  SELECT count(*) INTO v_count FROM public.profiles;
-
-  -- Jika akaun pertama, atau tiada peranan khusus, berikan taraf SUPER_ADMIN
-  IF v_count = 0 OR (NEW.raw_user_meta_data->>'role') = 'SUPER_ADMIN' OR NEW.raw_user_meta_data->>'role' IS NULL THEN
-    v_role := 'SUPER_ADMIN';
-  ELSE
-    BEGIN
-      v_role := (NEW.raw_user_meta_data->>'role')::user_role_type;
-    EXCEPTION WHEN OTHERS THEN
-      v_role := 'SUPER_ADMIN';
-    END;
-  END IF;
-
   -- Cipta profil dalam public.profiles
   INSERT INTO public.profiles (
     id,
@@ -48,24 +34,19 @@ BEGIN
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
     NEW.email,
-    COALESCE(NEW.raw_user_meta_data->>'position', 'Pegawai Pendidikan Daerah / Head Admin'),
+    'Pegawai Pendidikan Daerah / Head Admin',
     'ACTIVE',
-    v_role
+    'SUPER_ADMIN'
   ) ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
-    role = EXCLUDED.role;
-
-  -- Hubungkan ke jadual user_roles jika wujud
-  SELECT id INTO v_role_id FROM public.roles WHERE code = v_role LIMIT 1;
-  IF v_role_id IS NOT NULL THEN
-    INSERT INTO public.user_roles (user_id, role_id)
-    VALUES (NEW.id, v_role_id)
-    ON CONFLICT (user_id, role_id) DO NOTHING;
-  END IF;
+    role = 'SUPER_ADMIN';
 
   RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  -- Kalis ralat: jangan sekali-kali sekat pendaftaran auth.users sekiranya berlaku sebarang ralat profil
+  RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Pasang trigger pada auth.users
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;

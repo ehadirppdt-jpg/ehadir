@@ -1,0 +1,17 @@
+{
+  "short_name": "e-Hadir",
+  "name": "e-HADIR TUARAN — PPD Tuaran",
+  "description": "Sistem Kehadiran Pengetua & Guru Besar Pejabat Pendidikan Daerah Tuaran",
+  "icons": [
+    {
+      "src": "/logo-ppd.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020617",
+  "theme_color": "#059669",
+  "display": "standalone",
+  "orientation": "portrait"
+}

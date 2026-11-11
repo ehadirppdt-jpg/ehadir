@@ -22,7 +22,7 @@
 5. Tetapkan Pemboleh Ubah Persekitaran (Environment Variables):
    - `VITE_SUPABASE_URL`: URL projek Supabase anda
    - `VITE_SUPABASE_ANON_KEY`: Kunci anon Supabase
-   - `VITE_GOOGLE_MAPS_API_KEY`: Kunci API Google Maps (pilihan)
+   - `VITE_OSM_TILE_URL`: URL Jubin OpenStreetMap (pilihan, default: https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png)
    - `VITE_APP_NAME`: `e-HADIR TUARAN`
    - `VITE_ENABLE_MOCK_FALLBACK`: `false` (untuk mod pengeluaran sebenar)
 6. Tekan **Save and Deploy**.

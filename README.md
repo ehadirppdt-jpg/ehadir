@@ -134,6 +134,6 @@ Di laman log masuk (`/admin/login`), butang ujian pantas telah disediakan untuk 
 2. Konfigurasi binaan:
    - **Build command:** `npm run build`
    - **Build output directory:** `dist`
-3. Masukkan pemboleh ubah persekitaran (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_GOOGLE_MAPS_API_KEY`).
+3. Masukkan pemboleh ubah persekitaran (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_OSM_TILE_URL`).
 4. Tekan **Deploy**.
 

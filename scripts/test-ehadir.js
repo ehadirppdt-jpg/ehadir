@@ -181,6 +181,29 @@ assert(
   'Struktur kolum templat import akaun PGB (template_import_pgb.csv) tepat'
 );
 
+// ------------------------------------------------------------------------
+// 6. UJIAN INTEGRASI OPENSTREETMAP & KETIADAAN GOOGLE MAPS API
+// ------------------------------------------------------------------------
+console.log('\n--- 6. UJIAN OPENSTREETMAP, LEAFLET & KETIADAAN GOOGLE MAPS API ---');
+
+const envFile = fs.readFileSync(path.resolve('.env'), 'utf8');
+assert(
+  !envFile.includes('VITE_GOOGLE_MAPS_API_KEY') && envFile.includes('VITE_OSM_TILE_URL'),
+  'Fail .env mengandungi VITE_OSM_TILE_URL dan TIADA sebarang kunci VITE_GOOGLE_MAPS_API_KEY'
+);
+
+const geofenceTs = fs.readFileSync(path.resolve('src/lib/geofence.ts'), 'utf8');
+assert(
+  geofenceTs.includes('OpenStreetMap') && geofenceTs.includes('contributors') && geofenceTs.includes('calculateHaversineDistanceMeters'),
+  'Atribusi hak cipta OpenStreetMap dan formula Haversine wujud dalam src/lib/geofence.ts'
+);
+
+const edgeFunction = fs.readFileSync(path.resolve('supabase/functions/verify-geofence/index.ts'), 'utf8');
+assert(
+  edgeFunction.includes('calculateHaversineDistance') && edgeFunction.includes('POOR_GPS_ACCURACY'),
+  'Edge Function verify-geofence menguatkuasakan semakan Haversine & sekatan ketepatan GPS'
+);
+
 console.log('\n========================================================================');
 console.log(`KEPUTUSAN KESELURUHAN: ${passedTests}/${totalTests} UJIAN BERJAYA LULUS!`);
 console.log('========================================================================\n');

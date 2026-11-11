@@ -233,20 +233,12 @@ export const SchoolMapPage: React.FC = () => {
 
                 <div className="flex items-center gap-2 shrink-0">
                   <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${editLat},${editLng}`}
+                    href={`https://www.openstreetmap.org/?mlat=${editLat}&mlon=${editLng}#map=17/${editLat}/${editLng}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-all shadow-sm"
                   >
-                    <span>Google Maps</span>
-                  </a>
-                  <a
-                    href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${editLat},${editLng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all border border-slate-200"
-                  >
-                    <span>Street View</span>
+                    <span>Buka di OpenStreetMap</span>
                   </a>
                 </div>
               </div>

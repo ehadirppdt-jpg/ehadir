@@ -3,7 +3,7 @@
 interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL: string;
   readonly VITE_SUPABASE_ANON_KEY: string;
-  readonly VITE_GOOGLE_MAPS_API_KEY: string;
+  readonly VITE_OSM_TILE_URL?: string;
   readonly VITE_APP_NAME: string;
   readonly VITE_PPD_DISTRICT: string;
   readonly VITE_ENABLE_MOCK_FALLBACK: string;

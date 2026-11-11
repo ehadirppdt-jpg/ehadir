@@ -1,3 +1,6 @@
+// e-HADIR TUARAN — INTERACTIVE OPENSTREETMAP GEOFENCE COMPONENT
+// NO GOOGLE MAPS API: Uses Leaflet.js + OpenStreetMap (OSM) Standard Raster Tiles + Browser Geolocation API
+
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import {
@@ -5,14 +8,22 @@ import {
   Building2,
   School,
   ExternalLink,
-  Layers,
   Copy,
   Check,
   Navigation,
-  Eye,
   Sliders,
+  LocateFixed,
+  AlertCircle,
+  MapPin,
 } from 'lucide-react';
-import { PPD_TUARAN_OFFICE, calculateHaversineDistanceMeters } from '@/lib/geofence';
+import {
+  PPD_TUARAN_OFFICE,
+  OSM_TILE_URL,
+  OSM_ATTRIBUTION,
+  calculateHaversineDistanceMeters,
+  getDeviceCurrentPosition,
+  DeviceGpsPayload,
+} from '@/lib/geofence';
 
 interface InteractiveGeofenceMapProps {
   latitude: number;
@@ -37,9 +48,13 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const schoolMarkerRef = useRef<L.Marker | null>(null);
   const geofenceCircleRef = useRef<L.Circle | null>(null);
+  const userGpsMarkerRef = useRef<L.Marker | null>(null);
+  const userGpsCircleRef = useRef<L.Circle | null>(null);
 
-  const [mapType, setMapType] = useState<'STREET' | 'SATELLITE'>('STREET');
   const [copiedCoords, setCopiedCoords] = useState(false);
+  const [deviceGps, setDeviceGps] = useState<DeviceGpsPayload | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locatingError, setLocatingError] = useState<string | null>(null);
 
   // Calculate distance from school to PPD Tuaran office
   const distToPpd = calculateHaversineDistanceMeters(
@@ -49,11 +64,25 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
     PPD_TUARAN_OFFICE.longitude
   );
 
-  // Initialize Map
+  // Calculate user device distance to school if GPS is active
+  const distUserToSchool = deviceGps
+    ? calculateHaversineDistanceMeters(deviceGps.latitude, deviceGps.longitude, latitude, longitude)
+    : null;
+
+  const distUserToPpd = deviceGps
+    ? calculateHaversineDistanceMeters(
+        deviceGps.latitude,
+        deviceGps.longitude,
+        PPD_TUARAN_OFFICE.latitude,
+        PPD_TUARAN_OFFICE.longitude
+      )
+    : null;
+
+  // Initialize Leaflet OpenStreetMap
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    // Create Leaflet Map centered on the exact school coordinates
+    // Create Leaflet Map centered on the school coordinates
     const map = L.map(mapContainerRef.current, {
       center: [latitude, longitude],
       zoom: 16,
@@ -64,34 +93,17 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
     // Zoom control in bottom right
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Initial Tile Layer
-    const streetTiles = L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-      {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap contributors',
-      }
-    );
+    // Standard OpenStreetMap Raster Tiles with Strict Attribution
+    L.tileLayer(OSM_TILE_URL, {
+      maxZoom: 19,
+      attribution: OSM_ATTRIBUTION,
+    }).addTo(map);
 
-    const satelliteTiles = L.tileLayer(
-      'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      {
-        maxZoom: 19,
-        attribution: 'Tiles © Esri',
-      }
-    );
-
-    if (mapType === 'STREET') {
-      streetTiles.addTo(map);
-    } else {
-      satelliteTiles.addTo(map);
-    }
-
-    // Custom School Icon
+    // Custom School Marker Icon (Navy Blue)
     const schoolIcon = L.divIcon({
       className: 'custom-school-marker',
       html: `
-        <div style="background-color: #1E40AF; width: 38px; height: 38px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 4px 14px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: white;">
+        <div style="background-color: #1E40AF; width: 38px; height: 38px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 4px 14px rgba(0,0,0,0.45); display: flex; align-items: center; justify-content: center; color: white;">
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m4 6 8-4 8 4"/><path d="m18 10 4 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8l4-2"/><path d="M14 22v-4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4"/><path d="M18 5v17"/><path d="M6 5v17"/></svg>
         </div>
       `,
@@ -99,7 +111,7 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
       iconAnchor: [19, 19],
     });
 
-    // Custom PPD Tuaran Icon
+    // Custom PPD Tuaran Marker Icon (Teal)
     const ppdIcon = L.divIcon({
       className: 'custom-ppd-marker',
       html: `
@@ -111,7 +123,7 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
       iconAnchor: [17, 17],
     });
 
-    // Add School Marker (Draggable if editable)
+    // Add School Marker (Draggable if admin has edit permission)
     const schoolMarker = L.marker([latitude, longitude], {
       icon: schoolIcon,
       draggable: isEditable,
@@ -121,15 +133,15 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
     schoolMarker.bindPopup(`
       <div style="font-family: sans-serif; font-size: 12px; line-height: 1.4;">
         <strong style="color: #0f172a; font-size: 13px;">${schoolName}</strong><br/>
-        <span style="color: #64748b;">Pusat Rasmi Kehadiran Sekolah</span><br/>
+        <span style="color: #64748b;">Pusat Rasmi Kehadiran Sekolah (OSM)</span><br/>
         <span style="font-family: monospace; color: #2563eb; font-weight: bold;">
           ${latitude.toFixed(6)}, ${longitude.toFixed(6)}
         </span><br/>
-        <span style="color: #0d9488; font-weight: 600;">Radius Sah: ${radiusMeters} Meter</span>
+        <span style="color: #0d9488; font-weight: 600;">Radius Geofence: ${radiusMeters} Meter</span>
       </div>
     `);
 
-    // Add Geofence Circle
+    // Add School Geofence Circle
     const geofenceCircle = L.circle([latitude, longitude], {
       color: '#2563EB',
       fillColor: '#3B82F6',
@@ -139,7 +151,7 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
     }).addTo(map);
     geofenceCircleRef.current = geofenceCircle;
 
-    // Add PPD Tuaran HQ Marker and Approved 150m Circle
+    // Add PPD Tuaran HQ Marker and Approved 150m Perimeter
     const ppdMarker = L.marker([PPD_TUARAN_OFFICE.latitude, PPD_TUARAN_OFFICE.longitude], {
       icon: ppdIcon,
     }).addTo(map);
@@ -148,7 +160,7 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
       <div style="font-family: sans-serif; font-size: 12px; line-height: 1.4;">
         <strong style="color: #0f172a; font-size: 13px;">${PPD_TUARAN_OFFICE.name}</strong><br/>
         <span style="color: #64748b;">Lokasi Sah Kedua untuk Semua PGB</span><br/>
-        <span style="color: #0d9488; font-weight: 600;">Radius Sah: ${PPD_TUARAN_OFFICE.radius_meters} Meter</span>
+        <span style="color: #0d9488; font-weight: 600;">Radius Geofence: ${PPD_TUARAN_OFFICE.radius_meters} Meter</span>
       </div>
     `);
 
@@ -160,7 +172,7 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
       radius: PPD_TUARAN_OFFICE.radius_meters,
     }).addTo(map);
 
-    // Event: Marker dragged
+    // Event 1: School Marker dragged by user
     if (isEditable && onCoordinatesChange) {
       schoolMarker.on('dragend', (e) => {
         const marker = e.target;
@@ -168,7 +180,7 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
         onCoordinatesChange(position.lat, position.lng);
       });
 
-      // Event: Map clicked to reposition pin
+      // Event 2: Click anywhere on map to reposition marker
       map.on('click', (e) => {
         onCoordinatesChange(e.latlng.lat, e.latlng.lng);
       });
@@ -178,7 +190,7 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [mapType]); // Re-initialize if mapType changes
+  }, []);
 
   // Update marker & circle when latitude, longitude or radius changes
   useEffect(() => {
@@ -197,8 +209,69 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
     setTimeout(() => setCopiedCoords(false), 2500);
   };
 
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-  const streetViewUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${latitude},${longitude}`;
+  // Test live device GPS via Browser Geolocation API
+  const handleTestDeviceGps = async () => {
+    setIsLocating(true);
+    setLocatingError(null);
+
+    try {
+      const gps = await getDeviceCurrentPosition();
+      setDeviceGps(gps);
+
+      if (mapInstanceRef.current) {
+        const userLatLng = new L.LatLng(gps.latitude, gps.longitude);
+
+        // Remove old user markers if exist
+        if (userGpsMarkerRef.current) mapInstanceRef.current.removeLayer(userGpsMarkerRef.current);
+        if (userGpsCircleRef.current) mapInstanceRef.current.removeLayer(userGpsCircleRef.current);
+
+        // Create live user location marker (Emerald Pulse)
+        const userIcon = L.divIcon({
+          className: 'custom-user-gps-marker',
+          html: `
+            <div style="background-color: #059669; width: 32px; height: 32px; border-radius: 50%; border: 3px solid #ffffff; box-shadow: 0 0 0 6px rgba(16, 185, 129, 0.4); display: flex; align-items: center; justify-content: center; color: white;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+          `,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
+        const userMarker = L.marker(userLatLng, { icon: userIcon }).addTo(mapInstanceRef.current);
+        userMarker.bindPopup(`
+          <div style="font-family: sans-serif; font-size: 12px; line-height: 1.4;">
+            <strong style="color: #059669; font-size: 13px;">Lokasi GPS Peranti Anda</strong><br/>
+            <span style="font-family: monospace; color: #0f172a;">
+              ${gps.latitude.toFixed(6)}, ${gps.longitude.toFixed(6)}
+            </span><br/>
+            <span style="color: #64748b;">Ketepatan: ±${Math.round(gps.accuracy)}m</span>
+          </div>
+        `).openPopup();
+        userGpsMarkerRef.current = userMarker;
+
+        // Accuracy circle
+        const accuracyCircle = L.circle(userLatLng, {
+          color: '#059669',
+          fillColor: '#10B981',
+          fillOpacity: 0.15,
+          weight: 1.5,
+          radius: Math.max(gps.accuracy, 20),
+        }).addTo(mapInstanceRef.current);
+        userGpsCircleRef.current = accuracyCircle;
+
+        // Fit bounds to show both school and user
+        const bounds = L.latLngBounds([userLatLng, new L.LatLng(latitude, longitude)]);
+        mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 17 });
+      }
+    } catch (err: any) {
+      setLocatingError(err.message || 'Gagal mengesan koordinat GPS peranti.');
+    } finally {
+      setIsLocating(false);
+    }
+  };
+
+  // OpenStreetMap link (No Google Maps API)
+  const openStreetMapUrl = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=17/${latitude}/${longitude}`;
 
   return (
     <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 text-white relative shadow-xl flex flex-col">
@@ -230,59 +303,46 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
           </div>
         </div>
 
-        {/* Action Controls & External Map Links */}
+        {/* Action Controls & OpenStreetMap Links */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Map Layer Toggle */}
-          <div className="flex rounded-lg border border-slate-700 bg-navy-900 p-0.5 text-xs font-semibold">
-            <button
-              onClick={() => setMapType('STREET')}
-              className={`px-2.5 py-1 rounded transition-all ${
-                mapType === 'STREET'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Peta Jalan
-            </button>
-            <button
-              onClick={() => setMapType('SATELLITE')}
-              className={`px-2.5 py-1 rounded transition-all ${
-                mapType === 'SATELLITE'
-                  ? 'bg-blue-600 text-white shadow-xs'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Peta Satelit
-            </button>
-          </div>
+          {/* Live Device GPS Test Button (Browser Geolocation API) */}
+          <button
+            onClick={handleTestDeviceGps}
+            disabled={isLocating}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all shadow-sm ${
+              isLocating
+                ? 'bg-emerald-800 text-emerald-200 cursor-wait'
+                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+            }`}
+            title="Uji koordinat GPS peranti sebenar melalui Browser Geolocation API"
+          >
+            <LocateFixed className={`w-3.5 h-3.5 ${isLocating ? 'animate-spin' : ''}`} />
+            <span>{isLocating ? 'Mengesan GPS...' : 'Uji GPS Peranti'}</span>
+          </button>
 
-          {/* Open in Google Maps */}
+          {/* Open in OpenStreetMap (NO Google Maps) */}
           <a
-            href={googleMapsUrl}
+            href={openStreetMapUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white transition-all shadow-sm"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-200 border border-slate-700 transition-all shadow-sm"
           >
-            <Navigation className="w-3.5 h-3.5" />
-            <span>Buka di Google Maps</span>
-            <ExternalLink className="w-3 h-3 text-emerald-200" />
-          </a>
-
-          {/* Street View */}
-          <a
-            href={streetViewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-navy-800 hover:bg-navy-700 text-slate-300 border border-slate-700 transition-all"
-            title="Lihat Pemandangan Jalan Raya (Google Street View)"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Street View</span>
+            <Navigation className="w-3.5 h-3.5 text-blue-400" />
+            <span>Buka di OpenStreetMap</span>
+            <ExternalLink className="w-3 h-3 text-slate-400" />
           </a>
         </div>
       </div>
 
-      {/* Real Map Container */}
+      {/* GPS Error Alert if any */}
+      {locatingError && (
+        <div className="px-4 py-2.5 bg-rose-950/80 border-b border-rose-800 text-xs text-rose-300 flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+          <span>{locatingError}</span>
+        </div>
+      )}
+
+      {/* Real OpenStreetMap Container */}
       <div className="relative h-[420px] w-full z-10 bg-slate-950">
         <div ref={mapContainerRef} className="h-full w-full" />
 
@@ -297,9 +357,30 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
             <span>PPD Tuaran: {(distToPpd / 1000).toFixed(2)} km dari sini</span>
           </div>
           <div className="text-[11px] text-blue-300 font-semibold pt-1 border-t border-slate-800 flex items-center justify-between">
-            <span>Radius Geofence:</span>
+            <span>Radius Sah Geofence:</span>
             <span className="font-mono text-emerald-400 font-bold">{radiusMeters} Meter</span>
           </div>
+
+          {/* If user GPS tested, show real-time Haversine distance */}
+          {deviceGps && distUserToSchool !== null && (
+            <div className="mt-1 pt-1 border-t border-slate-800 text-[11px] text-emerald-300 space-y-0.5">
+              <div className="flex items-center justify-between">
+                <span>Jarak Anda ke Sekolah:</span>
+                <span className="font-mono font-bold">{distUserToSchool}m</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span>Status Geofence:</span>
+                <span
+                  className={`font-bold ${
+                    distUserToSchool <= radiusMeters ? 'text-emerald-400' : 'text-rose-400'
+                  }`}
+                >
+                  {distUserToSchool <= radiusMeters ? 'DALAM RADIUS (SAH)' : 'LUAR RADIUS'}
+                </span>
+              </div>
+            </div>
+          )}
+
           {isEditable && (
             <p className="text-[10px] text-slate-400 italic pt-1">
               *Klik peta atau seret penanda untuk menukar koordinat sekolah.

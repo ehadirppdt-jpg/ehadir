@@ -13,6 +13,7 @@ import {
   FileText,
   School,
   Lock,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -98,6 +99,23 @@ export const UserManagementPage: React.FC = () => {
       refreshUsers();
     } catch (e: any) {
       showToast(e.message, 'error');
+    }
+  };
+
+  const handleDeleteUser = (targetUser: UserProfile) => {
+    if (!user) return;
+    if (
+      confirm(
+        `Adakah anda pasti ingin memadam akaun ${targetUser.full_name} (${targetUser.email})?`
+      )
+    ) {
+      try {
+        dbService.deleteUser(targetUser.id, user);
+        showToast(`Akaun ${targetUser.full_name} berjaya dipadam.`, 'success');
+        refreshUsers();
+      } catch (err: any) {
+        showToast(err.message, 'error');
+      }
     }
   };
 
@@ -317,10 +335,18 @@ export const UserManagementPage: React.FC = () => {
 
                           <button
                             onClick={() => handleToggleStatus(u)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition-colors"
                             title={u.status === 'ACTIVE' ? 'Nyahaktifkan Akaun' : 'Aktifkan Akaun'}
                           >
                             <Lock className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteUser(u)}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            title="Padam Akaun"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>

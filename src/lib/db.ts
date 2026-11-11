@@ -355,16 +355,32 @@ export const INITIAL_JUSTIFICATIONS: Justification[] = [];
 function loadFromStorage<T>(key: string, defaultData: T): T {
   try {
     // Purge legacy demo seed data from browser localStorage on first run
-    const purgeFlag = 'ehadir_purge_v4_clean';
+    const purgeFlag = 'ehadir_purge_v6_clean';
     if (!localStorage.getItem(purgeFlag)) {
-      localStorage.removeItem('ehadir_users');
+      const rawUsers = localStorage.getItem('ehadir_users');
+      if (rawUsers) {
+        try {
+          const parsed = JSON.parse(rawUsers);
+          if (Array.isArray(parsed)) {
+            const superAdmins = parsed.filter(
+              (u: any) => u.role === 'SUPER_ADMIN' && u.email !== 'probe@test.com'
+            );
+            localStorage.setItem('ehadir_users', JSON.stringify(superAdmins));
+          } else {
+            localStorage.removeItem('ehadir_users');
+          }
+        } catch {
+          localStorage.removeItem('ehadir_users');
+        }
+      } else {
+        localStorage.removeItem('ehadir_users');
+      }
       localStorage.removeItem('ehadir_attendance_records');
       localStorage.removeItem('ehadir_justifications');
       localStorage.removeItem('ehadir_monthly_records');
       localStorage.removeItem('ehadir_approver_assignments');
       localStorage.removeItem('ehadir_notifications');
       localStorage.removeItem('ehadir_device_registry');
-      localStorage.removeItem('ehadir_tuaran_auth_session');
       localStorage.setItem(purgeFlag, 'true');
     }
 
@@ -680,7 +696,15 @@ export const dbService = {
 
   // --- USERS / PGB ---
   getUsers(): UserProfile[] {
-    return loadFromStorage<UserProfile[]>('users', INITIAL_USERS);
+    const list = loadFromStorage<UserProfile[]>('users', INITIAL_USERS);
+    const demoEmails = [
+      'admin.tenghilan@ppdtuaran.edu.my',
+      'admin.kiulu@ppdtuaran.edu.my',
+      'admin.sulaman@ppdtuaran.edu.my',
+      'admin.monitoring@ppdtuaran.edu.my',
+      'probe@test.com',
+    ];
+    return list.filter((u) => !demoEmails.includes(u.email.toLowerCase()));
   },
 
   saveUser(userToSave: UserProfile): void {
@@ -854,6 +878,69 @@ export const dbService = {
     });
 
     return updatedUser;
+  },
+
+  deleteUser(id: string, actor: UserProfile): { success: boolean; message: string } {
+    const users = this.getUsers();
+    const targetUser = users.find((u) => u.id === id);
+    if (!targetUser) throw new Error('Pengguna tidak dijumpai.');
+
+    if (targetUser.role === 'SUPER_ADMIN' && targetUser.id === actor.id) {
+      throw new Error('Akaun Super Admin yang sedang aktif tidak boleh dipadam.');
+    }
+
+    const remaining = users.filter((u) => u.id !== id);
+    saveToStorage('users', remaining);
+
+    if (isSupabaseConfigured) {
+      Promise.resolve(supabase.from('profiles').delete().eq('id', id))
+        .then((res: any) => {
+          if (res?.error) console.warn('Supabase delete profile notice:', res.error.message);
+        })
+        .catch((err: any) => console.warn('Supabase delete profile error:', err));
+    }
+
+    logAuditEvent({
+      actor_name: actor.full_name,
+      actor_role: actor.role,
+      actor_id: actor.id,
+      action: 'PADAM_PENGGUNA',
+      entity: 'PENGGUNA',
+      record_id: id,
+      old_values: targetUser,
+      remarks: `Memadam pengguna: ${targetUser.full_name} (${targetUser.role} - ${targetUser.email})`,
+    });
+
+    return { success: true, message: `Akaun ${targetUser.full_name} berjaya dipadam.` };
+  },
+
+  deleteAllNonSuperAdmins(actor: UserProfile): { deletedCount: number; message: string } {
+    const users = this.getUsers();
+    const toDelete = users.filter((u) => u.role !== 'SUPER_ADMIN' || u.email === 'probe@test.com');
+    const remaining = users.filter((u) => u.role === 'SUPER_ADMIN' && u.email !== 'probe@test.com');
+
+    saveToStorage('users', remaining);
+
+    if (isSupabaseConfigured) {
+      toDelete.forEach((u) => {
+        Promise.resolve(supabase.from('profiles').delete().eq('id', u.id)).catch(() => {});
+      });
+      Promise.resolve(supabase.from('profiles').delete().eq('email', 'probe@test.com')).catch(() => {});
+    }
+
+    logAuditEvent({
+      actor_name: actor.full_name,
+      actor_role: actor.role,
+      actor_id: actor.id,
+      action: 'PADAM_PENGGUNA',
+      entity: 'PENGGUNA',
+      remarks: `Memadam semua pentadbir selain Super Admin (${toDelete.length} akaun dipadam).`,
+    });
+
+    return {
+      deletedCount: toDelete.length,
+      message: `Semua pentadbir selain Super Admin berjaya dipadam (${toDelete.length} akaun dipadam).`,
+    };
   },
 
   // --- MONTHLY APPROVER ASSIGNMENTS ---

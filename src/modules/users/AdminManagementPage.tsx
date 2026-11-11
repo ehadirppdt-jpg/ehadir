@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Layers,
   KeyRound,
+  Trash2,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -107,6 +108,46 @@ export const AdminManagementPage: React.FC = () => {
     }
   };
 
+  const handleDeleteAdmin = (targetAdmin: UserProfile) => {
+    if (!user) return;
+    if (targetAdmin.id === user.id) {
+      showToast('Akaun anda sendiri tidak boleh dipadam.', 'error');
+      return;
+    }
+    if (
+      confirm(
+        `Adakah anda pasti ingin memadam pentadbir ${targetAdmin.full_name} (${targetAdmin.email})?`
+      )
+    ) {
+      try {
+        dbService.deleteUser(targetAdmin.id, user);
+        showToast(`Pentadbir ${targetAdmin.full_name} berjaya dipadam.`, 'success');
+        setUsers(dbService.getUsers());
+      } catch (err: any) {
+        showToast(err.message || 'Gagal memadam pentadbir.', 'error');
+      }
+    }
+  };
+
+  const handleDeleteAllOtherAdmins = () => {
+    if (!user) return;
+    if (
+      confirm(
+        'Adakah anda pasti ingin MEMADAM SEMUA PENTADBIR selain akaun Super Admin anda? Tindakan ini akan memadam semua Admin Zon dan Pemantau.'
+      )
+    ) {
+      try {
+        const res = dbService.deleteAllNonSuperAdmins(user);
+        showToast(res.message, 'success');
+        setUsers(dbService.getUsers());
+      } catch (err: any) {
+        showToast(err.message || 'Gagal memadam pentadbir.', 'error');
+      }
+    }
+  };
+
+  const hasOtherAdmins = adminUsers.some((a) => a.role !== 'SUPER_ADMIN');
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -121,14 +162,27 @@ export const AdminManagementPage: React.FC = () => {
           </p>
         </div>
 
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => handleOpenModal()}
-          icon={<Plus className="w-4 h-4" />}
-        >
-          Daftar Pentadbir Baharu
-        </Button>
+        <div className="flex items-center gap-2">
+          {hasOtherAdmins && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleDeleteAllOtherAdmins}
+              icon={<Trash2 className="w-4 h-4" />}
+            >
+              Padam Semua Pentadbir Lain
+            </Button>
+          )}
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => handleOpenModal()}
+            icon={<Plus className="w-4 h-4" />}
+          >
+            Daftar Pentadbir Baharu
+          </Button>
+        </div>
       </div>
 
       {/* Admin Grid Cards */}
@@ -211,6 +265,14 @@ export const AdminManagementPage: React.FC = () => {
                     icon={<Edit2 className="w-3.5 h-3.5" />}
                   >
                     Ubah Zon / Skop
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    onClick={() => handleDeleteAdmin(admin)}
+                    icon={<Trash2 className="w-3.5 h-3.5" />}
+                  >
+                    Padam
                   </Button>
                 </div>
               )}

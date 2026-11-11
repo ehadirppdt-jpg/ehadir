@@ -81,7 +81,7 @@ export interface School {
   latitude: number;
   longitude: number;
   geofence_radius_meters: number;
-  geofence_radius?: number;
+  geofence_radius?: number; // alias for geofence_radius_meters
   status: AccountStatusType;
   location_status: 'VERIFIED' | 'UNVERIFIED' | 'PENDING';
   zone_id?: string;
@@ -131,23 +131,21 @@ export interface AttendanceRecord {
   clock_in_time?: string;
   clock_out_time?: string;
   total_working_minutes: number;
-  work_duration_minutes?: number;
-  shortfall_minutes?: number;
   late_minutes: number;
   status: AttendanceStatusType;
   face_verified: boolean;
   gps_validated: boolean;
-  location_name?: string;
   clock_in_location?: string;
   clock_out_location?: string;
   has_justification?: boolean;
   justification_status?: JustificationStatusType;
   is_verified: boolean;
   created_at: string;
+  // Extended fields for User Portal display
+  work_duration_minutes?: number;
+  shortfall_minutes?: number;
+  location_name?: string;
 }
-
-export type HolidayRecord = HolidayCalendarItem;
-export type MonthlyAttendanceSummary = MonthlyAttendanceRecord;
 
 export interface Justification {
   id: string;
@@ -280,4 +278,8 @@ export interface DashboardStats {
   pendingMonthlyVerificationCount: number;
   unassignedApproverCount: number;
 }
+
+// Type aliases for User Portal compatibility
+export type HolidayRecord = HolidayCalendarItem;
+export type MonthlyAttendanceSummary = MonthlyAttendanceRecord;
 

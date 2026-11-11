@@ -69,7 +69,6 @@ export const UserJustificationsPage: React.FC = () => {
         date: incidentDate,
         reason_category: selectedCategory,
         description: reasonText,
-        timeRelated: timeRelated,
         documents: attachedFileName
           ? [{ name: attachedFileName, url: `https://storage.ppdtuaran.edu.my/justifications/${attachedFileName}`, size: 'PDF' }]
           : [],

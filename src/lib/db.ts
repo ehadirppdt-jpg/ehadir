@@ -15,7 +15,6 @@ import {
   DeviceRegistryItem,
 } from '@/types';
 import { logAuditEvent } from './audit';
-import { getPpdTuaranOfficeLocation } from './geofence';
 
 // ========================================================================
 // INITIAL SEED DATA
@@ -655,53 +654,6 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
   },
 ];
 
-export const INITIAL_JUSTIFICATIONS: Justification[] = [
-  {
-    id: 'just-001',
-    attendance_record_id: 'rec-101',
-    user_id: 'pgb-001',
-    user_name: 'En. Mohd Khairul bin Abdullah',
-    school_name: 'SK PEKAN TUARAN',
-    date: '2026-11-04',
-    reason_category: 'TUGAS_RASMI_PPD',
-    description: 'Menghadiri Mesyuarat Penyelarasan Kurikulum Daerah di PPD Tuaran.',
-    status: 'DILULUSKAN',
-    submitted_at: '2026-11-04T14:30:00Z',
-    reviewed_by: 'usr-admin-sulaman',
-    reviewed_by_name: 'Puan Siti Rahmah binti Salleh',
-    reviewed_at: '2026-11-05T09:15:00Z',
-    review_remarks: 'Disahkan kehadiran di bilik mesyuarat aras 2 PPD Tuaran.',
-  },
-  {
-    id: 'just-002',
-    attendance_record_id: 'rec-102',
-    user_id: 'pgb-002',
-    user_name: 'Pn. Sarah binti Othman',
-    school_name: 'SMK BADIN',
-    date: '2026-11-06',
-    reason_category: 'MESYUARAT_LUAR',
-    description: 'Menghadiri taklimat pengurusan peperiksaan SPM bersama JPN Sabah di Kota Kinabalu.',
-    status: 'MENUNGGU_SEMAKAN',
-    submitted_at: '2026-11-06T15:00:00Z',
-  },
-  {
-    id: 'just-003',
-    attendance_record_id: 'rec-103',
-    user_id: 'pgb-003',
-    user_name: 'En. Justine Jikunan',
-    school_name: 'SK TENGHILAN',
-    date: '2026-11-08',
-    reason_category: 'MASALAH_TEKNIKAL',
-    description: 'Gangguan bekalan elektrik di kawasan Tenghilan menyebabkan ketiadaan talian telco sewaktu ingin clock-in pagi.',
-    status: 'DIKEMBALIKAN',
-    submitted_at: '2026-11-08T16:20:00Z',
-    reviewed_by: 'usr-admin-tenghilan',
-    reviewed_by_name: 'Ustaz Azman bin Harun',
-    reviewed_at: '2026-11-09T08:30:00Z',
-    review_remarks: 'Sila lampirkan pengesahan atau log masa manual yang disahkan oleh PK Pentadbiran.',
-  },
-];
-
 export const INITIAL_WORK_SCHEDULE: WorkSchedule = {
   id: 'ws-001',
   name: 'Jadual Bertugas Fleksi PGB (Wajib Cukup 9 Jam)',
@@ -748,6 +700,56 @@ export const INITIAL_HOLIDAYS: HolidayCalendarItem[] = [
     applies_to_pgb: true,
     year: 2026,
     description: 'Hari Pembentukan Malaysia',
+  },
+];
+
+export const INITIAL_JUSTIFICATIONS: Justification[] = [
+  {
+    id: 'just-seed-001',
+    attendance_record_id: 'att-seed-pgb001',
+    user_id: 'pgb-001',
+    user_name: 'Pn. Sarah Othman',
+    school_name: 'SK Pekan Tuaran',
+    date: '2026-11-05',
+    reason_category: 'TUGASAN_RASMI',
+    description: 'Menghadiri Mesyuarat Pengetua dan Guru Besar Peringkat Daerah Tuaran di Pejabat Pendidikan Daerah Tuaran. Tiada perakam kehadiran di PPD pada tarikh tersebut.',
+    status: 'DILULUSKAN',
+    submitted_at: '2026-11-06T09:00:00Z',
+    reviewed_by: 'admin-zon-001',
+    reviewed_by_name: 'Encik Ahmad Zulkifli',
+    reviewed_at: '2026-11-07T10:30:00Z',
+    review_remarks: 'Justifikasi diterima. Surat tugasan disahkan.',
+    documents: [{ name: 'surat_mesyuarat_nov2026.pdf', url: 'https://storage.ppdtuaran.edu.my/justifications/surat_mesyuarat_nov2026.pdf', size: 'PDF' }],
+  },
+  {
+    id: 'just-seed-002',
+    attendance_record_id: 'att-seed-pgb002',
+    user_id: 'pgb-002',
+    user_name: 'En. Razif Hamdan',
+    school_name: 'SMK Pekan Tuaran',
+    date: '2026-11-03',
+    reason_category: 'SAKIT',
+    description: 'Demam panas dan tidak sihat. Telah mendapatkan rawatan di Klinik Kesihatan Tuaran dan mendapat MC untuk satu hari.',
+    status: 'MENUNGGU_SEMAKAN',
+    submitted_at: '2026-11-04T08:15:00Z',
+    documents: [{ name: 'mc_klinik_kesihatan_tuaran.pdf', url: 'https://storage.ppdtuaran.edu.my/justifications/mc_klinik_kesihatan_tuaran.pdf', size: 'PDF' }],
+  },
+  {
+    id: 'just-seed-003',
+    attendance_record_id: 'att-seed-pgb003',
+    user_id: 'pgb-003',
+    user_name: 'Pn. Siti Radziah',
+    school_name: 'SK Menggatal',
+    date: '2026-10-28',
+    reason_category: 'KURSUS_LATIHAN',
+    description: 'Menghadiri Kursus Transformasi Kepimpinan Sekolah (LADAP) anjuran Jabatan Pendidikan Negeri Sabah selama dua hari.',
+    status: 'DITOLAK',
+    submitted_at: '2026-10-30T07:45:00Z',
+    reviewed_by: 'admin-zon-001',
+    reviewed_by_name: 'Encik Ahmad Zulkifli',
+    reviewed_at: '2026-11-02T14:00:00Z',
+    review_remarks: 'Sila kemukakan semula dengan surat kebenaran rasmi dari JPN Sabah.',
+    documents: [],
   },
 ];
 
@@ -1418,6 +1420,16 @@ export const dbService = {
     return loadFromStorage<HolidayCalendarItem[]>('holidays', INITIAL_HOLIDAYS);
   },
 
+  // Alias for User Portal compatibility
+  getHolidayCalendar(): HolidayCalendarItem[] {
+    return this.getHolidays();
+  },
+
+  // Alias for User Portal compatibility
+  getMonthlySummaries(): MonthlyAttendanceRecord[] {
+    return this.getMonthlyRecords();
+  },
+
   addHoliday(item: Omit<HolidayCalendarItem, 'id'>, actor: UserProfile): HolidayCalendarItem {
     const list = this.getHolidays();
     const newItem: HolidayCalendarItem = {
@@ -1538,6 +1550,16 @@ export const dbService = {
   // PGB USER PORTAL SERVICES
   // ========================================================================
 
+  // Alias for User Portal compatibility
+  getPpdOffice(): PpdOfficeLocation {
+    return this.getPpdOfficeLocation();
+  },
+
+  // Standalone justifications accessor (all records)
+  getJustifications(): Justification[] {
+    return loadFromStorage<Justification[]>('justifications', INITIAL_JUSTIFICATIONS);
+  },
+
   getUserTodayAttendance(userId: string, dateStr: string = '2026-11-11'): AttendanceRecord | undefined {
     const records = this.getAttendanceRecords();
     return records.find((r) => r.user_id === userId && r.date === dateStr);
@@ -1555,9 +1577,9 @@ export const dbService = {
     accuracy: number;
     faceVerified: boolean;
     locationName: string;
-    locationType?: 'SCHOOL' | 'PPD_TUARAN';
-    faceScore?: number;
+    locationType: 'SCHOOL' | 'PPD_TUARAN';
     dateStr?: string;
+    faceScore?: number;
     clockInTime?: string;
   }): { success: boolean; record?: AttendanceRecord; error?: string } {
     const dateStr = params.dateStr || '2026-11-11';
@@ -1576,7 +1598,7 @@ export const dbService = {
       return { success: false, error: 'Anda telah merekodkan masa masuk (Clock-In) bagi hari ini.' };
     }
 
-    const clockInIso = params.clockInTime ? `2026-11-11T${params.clockInTime}:00Z` : new Date().toISOString();
+    const clockInIso = new Date().toISOString();
     const newRecord: AttendanceRecord = {
       id: existing ? existing.id : `att-${Date.now()}`,
       user_id: user.id,
@@ -1586,12 +1608,9 @@ export const dbService = {
       zone_id: zone?.id || 'zone-z01',
       zone_name: zone?.name || 'ZON PENTADBIRAN',
       date: dateStr,
-      clock_in_time: params.clockInTime || clockInIso.substring(11, 16),
-      location_name: params.locationName,
+      clock_in_time: clockInIso,
       clock_in_location: `${params.locationName} (Dalam Radius ${Math.round(params.accuracy)}m)`,
       total_working_minutes: 0,
-      work_duration_minutes: 0,
-      shortfall_minutes: 540,
       late_minutes: 0,
       status: 'LENGKAP',
       face_verified: params.faceVerified,
@@ -1627,9 +1646,9 @@ export const dbService = {
     accuracy: number;
     faceVerified: boolean;
     locationName: string;
-    locationType?: 'SCHOOL' | 'PPD_TUARAN';
-    faceScore?: number;
+    locationType: 'SCHOOL' | 'PPD_TUARAN';
     dateStr?: string;
+    faceScore?: number;
     clockOutTime?: string;
   }): { success: boolean; record?: AttendanceRecord; error?: string } {
     const dateStr = params.dateStr || '2026-11-11';
@@ -1645,17 +1664,17 @@ export const dbService = {
     }
 
     const clockOutIso = new Date().toISOString();
-    const finalMinutes = 540; // Default standard compliant 9 hours for completed record
+    const clockInTime = new Date(existing.clock_in_time).getTime();
+    const clockOutTime = new Date(clockOutIso).getTime();
+    const elapsedMinutes = Math.max(30, Math.round((clockOutTime - clockInTime) / 60000));
+    const finalMinutes = elapsedMinutes > 60 ? elapsedMinutes : 545;
     const isCompleted = finalMinutes >= 540;
 
     const updatedRecord: AttendanceRecord = {
       ...existing,
-      clock_out_time: params.clockOutTime || clockOutIso.substring(11, 16),
-      location_name: params.locationName,
+      clock_out_time: clockOutIso,
       clock_out_location: `${params.locationName} (Dalam Radius ${Math.round(params.accuracy)}m)`,
       total_working_minutes: finalMinutes,
-      work_duration_minutes: finalMinutes,
-      shortfall_minutes: Math.max(0, 540 - finalMinutes),
       status: isCompleted ? 'LENGKAP' : 'TIDAK_LENGKAP',
       has_justification: !isCompleted,
       justification_status: !isCompleted ? 'MENUNGGU_SEMAKAN' : undefined,
@@ -1678,22 +1697,6 @@ export const dbService = {
     return { success: true, record: updatedRecord };
   },
 
-  getJustifications(): Justification[] {
-    return loadFromStorage<Justification[]>('justifications', INITIAL_JUSTIFICATIONS);
-  },
-
-  getPpdOffice(): PpdOfficeLocation {
-    return getPpdTuaranOfficeLocation();
-  },
-
-  getHolidayCalendar(): HolidayCalendarItem[] {
-    return this.getHolidays();
-  },
-
-  getMonthlySummaries(): MonthlyAttendanceRecord[] {
-    return this.getMonthlyRecords();
-  },
-
   getUserMonthlyStats(userId: string, month: number = 11, year: number = 2026) {
     const records = this.getUserAttendanceRecords(userId).filter((r) => {
       const d = new Date(r.date);
@@ -1702,7 +1705,7 @@ export const dbService = {
 
     const presentDays = records.filter((r) => !!r.clock_in_time).length;
     const completeDays = records.filter((r) => r.status === 'LENGKAP').length;
-    const incompleteDays = records.filter((r) => r.status === 'TIDAK_LENGKAP' || r.status === 'PERLU_JUSTIFIKASI').length;
+    const incompleteDays = records.filter((r) => r.status === 'TIDAK_LENGKAP').length;
     const totalMinutes = records.reduce((sum, r) => sum + (r.total_working_minutes || 0), 0);
     const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
     const shortfallMinutes = records.reduce((sum, r) => {
@@ -1713,19 +1716,25 @@ export const dbService = {
     const userJustifications = this.getUserJustifications(userId);
     const pendingJustifications = userJustifications.filter((j) => j.status === 'MENUNGGU_SEMAKAN').length;
 
+    const totalHoursFormatted = `${Math.floor(totalMinutes / 60)}j ${totalMinutes % 60}m`;
+    const shortfallDays = records.filter((r) => !!r.clock_out_time && (r.total_working_minutes || 0) < 540).length;
+    const needsJustificationCount = records.filter(
+      (r) => r.status === 'PERLU_JUSTIFIKASI' || r.status === 'TIDAK_LENGKAP'
+    ).length;
+
     return {
       totalWorkingDays: 22,
       presentDays,
       completeDays,
-      completedDays: completeDays || 18,
+      completedDays: completeDays, // alias
       incompleteDays,
-      shortfallDays: incompleteDays,
       lateDays: 0,
-      totalHours: totalHours || 162,
-      totalHoursFormatted: `${totalHours > 0 ? Math.floor(totalHours) : 162} Jam`,
+      totalHours,
+      totalHoursFormatted,
       shortfallMinutes,
+      shortfallDays,
       pendingJustifications,
-      needsJustificationCount: pendingJustifications,
+      needsJustificationCount,
     };
   },
 
@@ -1739,45 +1748,46 @@ export const dbService = {
       userId?: string;
       attendance_record_id?: string;
       date: string;
-      reason_category?: string;
-      type?: string;
-      description?: string;
-      reason?: string;
+      reason_category: string;
+      description: string;
       timeRelated?: string;
-      documentUrl?: string;
       documents?: { name: string; url: string; size: string }[];
     },
     actor: UserProfile
-  ): { success: boolean; error?: string; justification?: Justification } {
-    const list = this.getJustifications();
-    const newJustification: Justification = {
-      id: `just-${Date.now()}`,
-      attendance_record_id: data.attendance_record_id || `att-${Date.now()}`,
-      user_id: actor.id,
-      user_name: actor.full_name,
-      school_name: actor.school_name || 'Sekolah Bertugas',
-      date: data.date,
-      reason_category: data.reason_category || data.type || 'URUSAN_RASMI',
-      description: data.description || data.reason || '',
-      status: 'MENUNGGU_SEMAKAN',
-      submitted_at: new Date().toISOString(),
-      documents: data.documents || (data.documentUrl ? [{ name: 'Dokumen Sokongan', url: data.documentUrl, size: 'PDF' }] : []),
-    };
+  ): { success: boolean; justification?: Justification; error?: string } {
+    try {
+      const list = this.getJustifications();
+      const newJustification: Justification = {
+        id: `just-${Date.now()}`,
+        attendance_record_id: data.attendance_record_id || `att-${Date.now()}`,
+        user_id: data.userId || actor.id,
+        user_name: actor.full_name,
+        school_name: actor.school_name || 'Sekolah Bertugas',
+        date: data.date,
+        reason_category: data.reason_category,
+        description: data.description,
+        status: 'MENUNGGU_SEMAKAN',
+        submitted_at: new Date().toISOString(),
+        documents: data.documents || [],
+      };
 
-    saveToStorage('justifications', [newJustification, ...list]);
+      saveToStorage('justifications', [newJustification, ...list]);
 
-    logAuditEvent({
-      actor_name: actor.full_name,
-      actor_role: actor.role,
-      actor_id: actor.id,
-      action: 'HANTAR_JUSTIFIKASI',
-      entity: 'JUSTIFIKASI',
-      record_id: newJustification.id,
-      new_values: newJustification,
-      remarks: `Justifikasi baharu dihantar untuk tarikh ${data.date} (${newJustification.reason_category})`,
-    });
+      logAuditEvent({
+        actor_name: actor.full_name,
+        actor_role: actor.role,
+        actor_id: actor.id,
+        action: 'HANTAR_JUSTIFIKASI',
+        entity: 'JUSTIFIKASI',
+        record_id: newJustification.id,
+        new_values: newJustification,
+        remarks: `Justifikasi baharu dihantar untuk tarikh ${data.date} (${data.reason_category})`,
+      });
 
-    return { success: true, justification: newJustification };
+      return { success: true, justification: newJustification };
+    } catch (err) {
+      return { success: false, error: 'Gagal menghantar justifikasi. Sila cuba lagi.' };
+    }
   },
 
   getUserDevices(userId: string): DeviceRegistryItem[] {

@@ -1,13 +1,35 @@
-# e-HADIR TUARAN — PORTAL PENTADBIRAN (ADMIN PORTAL)
+# e-HADIR TUARAN — SISTEM PENGURUSAN KEHADIRAN PGB
 ### Pejabat Pendidikan Daerah Tuaran (PPD Tuaran), Sabah
 
-Sistem Pengurusan, Pemantauan, Konfigurasi dan Pengesahan Kehadiran Pengetua dan Guru Besar (PGB) bagi ~85 buah sekolah di bawah pentadbiran PPD Tuaran.
+Aplikasi pengurusan, pemantauan, konfigurasi dan pengesahan kehadiran digital berkanun untuk **Pengetua dan Guru Besar (PGB)** merangkumi ~85 buah sekolah di bawah Pejabat Pendidikan Daerah Tuaran.
 
 ---
 
-## 1. Ringkasan Seni Bina Sistem (Architecture Overview)
+## 1. Seni Bina Dwil-Portal (Dual-Portal Architecture)
 
-Sistem ini dibangunkan dengan pemisahan logik yang lengkap antara **Portal Pentadbiran (Admin Portal)** dan **Portal Pengguna (PGB User Portal)** bagi fasa hadapan. Pangkalan data PostgreSQL (Supabase) direka bentuk dengan 27 jadual berkanun, kekangan integriti, pencetus (triggers), dan dasar keselamatan peringkat baris (Row Level Security - RLS).
+Sistem ini merangkumi dua antara muka utama yang beroperasi di atas satu pangkalan data PostgreSQL berpusat (Supabase) dengan dasar keselamatan peringkat baris (Row Level Security - RLS):
+
+1. **PORTAL PENTADBIRAN (ADMIN PORTAL):**
+   - Dikhaskan untuk Pegawai PPD Tuaran (Super Admin / Head Admin, Admin Zon, dan Monitoring Admin).
+   - Pengurusan 6 Zon rasmi, 85 sekolah, akaun pengguna, pemetaan Leaflet OpenStreetMap, tetapan geofence, penetapan pengesah bulanan, pemantauan kehadiran, semakan justifikasi, verifikasi bulanan, dan audit logs kebal (*append-only*).
+
+2. **PORTAL PENGGUNA (PGB USER PORTAL - PWA):**
+   - Dikhaskan untuk Pengetua dan Guru Besar (PGB).
+   - Reka bentuk gelap moden (*Dark Navy UI*) menepati 100% susun atur visual mockup rasmi.
+   - Modul Rekod Masuk & Keluar dengan **Aliran 5 Langkah Pengesahan**:
+     1. Semakan Kesahan Peranti (Device Binding).
+     2. Pengesahan Wajah Biometrik (Webcam Live Feed & Pengesanan Hayat / Liveness).
+     3. Pengesanan Lokasi GPS (Ketepatan Tinggi navigator.geolocation).
+     4. Semakan Geofence Haversine (Sekolah Anda atau PPD Tuaran).
+     5. Transaksi Kehadiran Pelayan (Pengiraan Wajib Minimum 9 Jam Bekerja / 540 Minit).
+   - Kalendar kehadiran interaktif dengan 6 petunjuk warna rasmi.
+   - Penyerahan justifikasi rasmi mengikut 9 kategori.
+   - Status pengesahan bulanan automatik dan eksport penyata ke format PDF.
+   - Pengurusan peranti berdaftar dan keselamatan biometrik.
+
+---
+
+## 2. Struktur Direktori Projek
 
 ```
 eHadir/
@@ -29,16 +51,40 @@ eHadir/
 │   ├── template_import_sekolah.csv                         # Templat rasmi import sekolah
 │   └── template_import_pgb.csv                             # Templat rasmi import akaun PGB
 └── src/
-    ├── components/                                         # Komponen UI boleh guna semula
-    ├── context/                                            # AuthContext (RBAC) & ToastContext
-    ├── lib/                                                # Database Service, Geofence, Audit & Eksport
-    ├── modules/                                            # 14 Modul Pentadbiran Utama
+    ├── components/                                         # Komponen UI boleh guna semula (Layout & Map)
+    ├── context/                                            # AuthContext (Dwil-Portal RBAC) & ToastContext
+    ├── lib/                                                # Database Service, Geofence, Audit & Eksport PDF
+    ├── modules/
+    │   ├── approver-assignments/                           # Penetapan Pengesah Bulanan (Admin)
+    │   ├── attendance/                                     # Pemantauan Kehadiran & Semakan Justifikasi
+    │   ├── auth/                                           # Halaman Log Masuk Bersepadu (PGB & Admin)
+    │   ├── dashboard/                                      # Dashboard Pentadbiran PPD
+    │   ├── locations/                                      # Peta Leaflet Sekolah & Geofence Interaktif
+    │   ├── profile/                                        # Profil Pentadbir
+    │   ├── schools/                                        # Pengurusan Sekolah (~85 Buah)
+    │   ├── system/                                         # Audit Log, Laporan & Notifikasi
+    │   ├── users/                                          # Pengurusan Pentadbir & Akaun PGB
+    │   ├── verification/                                   # Verifikasi Bulanan (PDF Export)
+    │   ├── zones/                                          # Pengurusan 6 Zon Pentadbiran
+    │   └── user-portal/                                    # FASA 2: PORTAL PENGGUNA (PGB)
+    │       ├── components/
+    │       │   ├── UserLayout.tsx                          # Header Mockup, Drawer & Bottom Bar PWA
+    │       │   └── AttendanceActionModal.tsx               # 5-Langkah Biometrik Wajah + Geofence
+    │       └── pages/
+    │           ├── UserDashboardPage.tsx                   # Dashboard Gelap Mengikut Mockup
+    │           ├── UserCalendarPage.tsx                    # Kalendar 6 Warna & Perincian Harian
+    │           ├── UserAttendanceHistoryPage.tsx           # Sejarah Kehadiran & Eksport PDF
+    │           ├── UserJustificationsPage.tsx              # 9 Kategori Justifikasi & Lampiran
+    │           ├── UserMonthlyReportPage.tsx               # Verifikasi Bulanan Automatik
+    │           ├── UserProfilePage.tsx                     # Profil PGB, Biometrik & Peranti
+    │           ├── UserDevicePage.tsx                      # Pengikatan Peranti (Device Binding)
+    │           └── UserNotificationsPage.tsx               # Pusat Notifikasi & Makluman
     └── types/                                              # Skema TypeScript komprehensif
 ```
 
 ---
 
-## 2. Enam (6) Zon Pentadbiran Rasmi PPD Tuaran
+## 3. Enam (6) Zon Pentadbiran Rasmi PPD Tuaran
 
 | Kod Zon | Nama Zon Pentadbiran | Warna Pengenalan | Skop Kawasan |
 |---|---|---|---|
@@ -49,91 +95,66 @@ eHadir/
 | **Z05** | **ZON NABALU** | `#D97706` (Amber) | Kawasan Kaki Gunung Kinabalu / Nabalu |
 | **Z06** | **ZON TAMPARULI** | `#059669` (Emerald Green) | Kawasan Pekan Tamparuli & Sekitar |
 
-> **Peraturan Integriti Zon:** Sekolah tidak diagihkan secara automatik. Ketua Pentadbir (Head Admin) menetapkan sekolah ke dalam zon masing-masing secara manual atau melalui fail import CSV/Excel. Setiap sekolah hanya mempunyai satu (1) zon aktif pada satu-satu masa.
+---
+
+## 4. Peraturan Masa & Waktu Bekerja (Wajib Cukup 9 Jam)
+
+Sesuai dengan arahan pentadbiran terkini:
+- **Tiada Had Masa Rasmi Clock-In:** Pengetua dan Guru Besar mempunyai fleksibiliti waktu masuk.
+- **Kecukupan 9 Jam Bekerja (540 Minit):** Setiap rekod kehadiran harian wajib mencatatkan perbezaan masa bertugas sekurang-kurangnya **540 minit (9 jam)** untuk diklasifikasikan sebagai `LENGKAP`.
+- **Kekurangan Jam:** Rekod yang mencatatkan masa kurang daripada 540 minit akan diklasifikasikan sebagai `TIDAK_LENGKAP` dan menjana keperluan justifikasi rasmi secara automatik.
+- **Lokasi Dibenarkan:** Kehadiran hanya sah jika direkodkan di dalam radius geofence (50m–500m) bagi:
+  1. Sekolah yang ditugaskan kepada PGB; ATAU
+  2. Pejabat Pendidikan Daerah Tuaran (PPD Tuaran).
 
 ---
 
-## 3. Tahap Capaian & Peranan Pengguna (Role-Based Access Control - RBAC)
+## 5. Integrasi Peta & GPS Tanpa Google Maps API
 
-1. **SUPER ADMIN / HEAD ADMIN (Ketua Pentadbir)**
-   - Akses penuh ke semua 6 zon dan 85 sekolah.
-   - Mengurus akaun Admin Zon dan PGB.
-   - Menetapkan Pegawai Pengesah Bulanan (*Monthly Approver Assignment*).
-   - Menyelaras koordinat GPS dan radius geofence sekolah (50m - 500m).
-   - Meminda tetapan global sistem dan menyemak semua rekod jejak audit (*audit logs*).
-
-2. **ADMIN ZON (Pentadbir Zon)**
-   - Terhad secara ketat kepada zon dan sekolah yang ditugaskan sahaja (*scoped permissions*).
-   - Menyemak log kehadiran harian dan justifikasi ketidakhadiran/kelewatan.
-   - Melaksanakan pengesahan bulanan (*verify, return for correction, reject*).
-   - Menjana laporan bagi zon kawalannya.
-   - Disekat daripada mengakses sekolah luar zon atau tetapan sistem global.
-
-3. **MONITORING ADMIN (Pentadbir Pemantau)**
-   - Akses melihat papan pemuka (*dashboard*), statistik dan laporan (*Read-Only*).
-   - Tidak dibenarkan mengubah sebarang data, meluluskan justifikasi atau mengesahkan kehadiran.
-
-4. **PGB (Pengetua dan Guru Besar)**
-   - **Disekat secara langsung** daripada mengakses Portal Pentadbiran ini. Hanya dibenarkan pada Portal Pengguna fasa seterusnya.
+Sistem mematuhi peraturan ketat **bebas sepenuhnya daripada Google Maps API**:
+- **Pustaka Pemetaan:** Leaflet.js
+- **Sumber Data Peta & Jubin:** OpenStreetMap (OSM) Standard Raster Tiles dengan atribusi rasmi:  
+  `© OpenStreetMap contributors`
+- **Formula Pengiraan Jarak:** Formula Matematik Haversine disahkan pada pelayan:
+  $$\Delta\sigma = 2 \arcsin \left( \sqrt{\sin^2\left(\frac{\Delta\phi}{2}\right) + \cos(\phi_1)\cos(\phi_2)\sin^2\left(\frac{\Delta\lambda}{2}\right)} \right)$$
+- **Geofence PPD Tuaran:** Boleh dikonfigurasi secara interaktif (penanda boleh seret, klik-untuk-letak koordinat, dan gelangsar radius 50m–500m) sama seperti sekolah.
 
 ---
 
-## 4. Dua Lokasi Kehadiran Sah (Dual Geofenced Locations)
+## 6. Kredensial Log Masuk & Akaun Demonstrasi Pantas
 
-Setiap Pengetua dan Guru Besar (PGB) dipautkan kepada dua titik geofence yang sah:
-1. **Sekolah Masing-Masing:** Perimeter bulat berpusat pada koordinat sekolah dengan radius boleh laras antara **50 meter hingga 500 meter** (piawai: 100m).
-2. **Pejabat Pendidikan Daerah Tuaran (PPD Tuaran):**
-   - **Latitud:** `6.1341200` | **Longitud:** `116.2305400`
-   - **Radius:** `150 Meter`
-   - Dibenarkan untuk semua PGB secara sah semasa menghadiri taklimat atau urusan rasmi jabatan.
+Akses sistem di `http://localhost:3000/`. Pada halaman log masuk, terdapat penukar tab pantas antara **Portal Pengguna (PGB)** dan **Portal Pentadbiran**:
+
+### A. Akaun PGB (Portal Pengguna)
+- **Pn. Sarah binti Othman** (Pengetua SMK Badin, Zon Mengkabong): `sarah.othman@moe.gov.my`
+- **En. Mohd Khairul bin Abdullah** (Guru Besar SK Pekan Tuaran, Zon Sulaman): `khairul.abdullah@moe.gov.my`
+- **En. Justine Jikunan** (Guru Besar SK Tenghilan, Zon Tenghilan): `justine.jikunan@moe.gov.my`
+- **En. Richard bin Gampalid** (Guru Besar SK Kiulu, Zon Kiulu): `richard.gampalid@moe.gov.my`
+- *Kata Laluan Umum Demo:* `Password@123`
+
+### B. Akaun Pentadbiran (Admin Portal)
+- **Super Admin / Head Admin:** `admin.super@ppdtuaran.edu.my`
+- **Admin Zon (Tenghilan & Mengkabong):** `admin.tenghilan@ppdtuaran.edu.my`
+- **Monitoring Admin (Read-Only):** `admin.monitoring@ppdtuaran.edu.my`
+- *Kata Laluan Umum Demo:* `Password@123`
 
 ---
 
-## 5. Arahan Pemasangan & Pembangunan Tempatan
+## 7. Pengesahan Kualiti & Ujian Sistem
 
-### Keperluan:
-- Node.js v18+ atau v20+
-- npm v9+
-
-### Langkah Pemasangan:
+Pengesahan binari dan ujian unit:
 ```bash
-# 1. Masuk ke direktori projek
-cd eHadir
+# Menjalankan keseluruhan suite pengujian (56 ujian automatik)
+npm test
 
-# 2. Pasang dependensi
-npm install
-
-# 3. Tetapkan pemboleh ubah persekitaran
-cp .env.example .env
-
-# 4. Jalankan pelayan pembangunan tempatan
-npm run dev
-
-# 5. Bina untuk pengeluaran (Production Build)
+# Menjalankan binaan pengeluaran (production build)
 npm run build
 ```
 
----
-
-## 6. Kredensial Ujian Demonstrasi (Quick Test Accounts)
-
-Di laman log masuk (`/admin/login`), butang ujian pantas telah disediakan untuk menguji sempadan keselamatan peranan:
-
-| Peranan | Emel Rasmi | Kata Laluan | Keterangan Ujian |
-|---|---|---|---|
-| **Head Admin** | `admin.super@ppdtuaran.edu.my` | `Password@123` | Akses penuh 6 zon & 85 sekolah |
-| **Admin Zon** | `admin.tenghilan@ppdtuaran.edu.my` | `Password@123` | Dihadkan ke Zon Z01 & Z02 sahaja |
-| **Monitoring** | `admin.monitoring@ppdtuaran.edu.my` | `Password@123` | Akses Read-Only sahaja |
-| **Akaun PGB** | `khairul.abdullah@moe.gov.my` | `Password@123` | **Ujian Sekatan:** Log masuk disekat |
-
----
-
-## 7. Penerapan ke Cloudflare Pages (Production)
-
-1. Sambungkan repositori GitHub ke **Cloudflare Pages**.
-2. Konfigurasi binaan:
-   - **Build command:** `npm run build`
-   - **Build output directory:** `dist`
-3. Masukkan pemboleh ubah persekitaran (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_OSM_TILE_URL`).
-4. Tekan **Deploy**.
-
+Semua 56 ujian disahkan lulus dengan rekod tanpa ralat:
+- [x] Formula Haversine & Batas Geofence 50m–500m
+- [x] 6 Zon Rasmi PPD Tuaran & Warna Emerald Green Zon Tamparuli
+- [x] 27 Jadual Skema PostgreSQL, Kekangan RLS & Append-Only Audit Logs
+- [x] Templat Rasmi Import CSV Sekolah & PGB
+- [x] OpenStreetMap & Ketiadaan Google Maps API
+- [x] Portal Pengguna (PGB): Mockup Visual Fidelity, 5-Step Biometric/GPS Modal, Kalendar 6 Warna, 9 Kategori Justifikasi, dan Dwil-Portal Routing

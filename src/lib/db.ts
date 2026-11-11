@@ -12,8 +12,10 @@ import {
   DashboardStats,
   UserRoleType,
   PpdOfficeLocation,
+  DeviceRegistryItem,
 } from '@/types';
 import { logAuditEvent } from './audit';
+import { getPpdTuaranOfficeLocation } from './geofence';
 
 // ========================================================================
 // INITIAL SEED DATA
@@ -378,6 +380,101 @@ export const INITIAL_USERS: UserProfile[] = [
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
   },
+  {
+    id: 'pgb-003',
+    full_name: 'En. Justine Jikunan',
+    ic_no: '770518125123',
+    position: 'Guru Besar DG44',
+    email: 'justine.jikunan@moe.gov.my',
+    phone_number: '014-8899001',
+    status: 'ACTIVE',
+    role: 'PGB',
+    assigned_school_id: 'sch-003',
+    school_name: 'SK TENGHILAN',
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'pgb-004',
+    full_name: 'En. Richard bin Gampalid',
+    ic_no: '791104125789',
+    position: 'Guru Besar DG48',
+    email: 'richard.gampalid@moe.gov.my',
+    phone_number: '016-7788992',
+    status: 'ACTIVE',
+    role: 'PGB',
+    assigned_school_id: 'sch-005',
+    school_name: 'SK KIULU',
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'pgb-005',
+    full_name: 'Pn. Marhaini binti Mokhtar',
+    ic_no: '810712125432',
+    position: 'Guru Besar DG44',
+    email: 'marhaini.mokhtar@moe.gov.my',
+    phone_number: '013-3344556',
+    status: 'ACTIVE',
+    role: 'PGB',
+    assigned_school_id: 'sch-006',
+    school_name: 'SK PEKAN NABALU',
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'pgb-006',
+    full_name: 'En. Stephen Majin',
+    ic_no: '740925126001',
+    position: 'Guru Besar Cemerlang DG48',
+    email: 'stephen.majin@moe.gov.my',
+    phone_number: '019-2233445',
+    status: 'ACTIVE',
+    role: 'PGB',
+    assigned_school_id: 'sch-007',
+    school_name: 'SK PEKAN TAMPARULI',
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+  },
+];
+
+export const INITIAL_DEVICE_REGISTRY: DeviceRegistryItem[] = [
+  {
+    id: 'dev-001',
+    user_id: 'pgb-001',
+    device_name: 'Samsung Galaxy S24 Ultra',
+    device_model: 'SM-S928B',
+    os_name: 'Android 14 (One UI 6.1)',
+    device_uuid: 'a8f4c219-45d2-4e89-9a10-2f8832a87c01',
+    is_primary: true,
+    status: 'ACTIVE',
+    registered_at: '2026-01-15T09:00:00Z',
+    last_used_at: '2026-11-11T07:22:10Z',
+  },
+  {
+    id: 'dev-002',
+    user_id: 'pgb-002',
+    device_name: 'Apple iPhone 15 Pro',
+    device_model: 'A3102',
+    os_name: 'iOS 17.5.1',
+    device_uuid: 'b9d1e432-88f1-4321-9988-7e6655443322',
+    is_primary: true,
+    status: 'ACTIVE',
+    registered_at: '2026-02-01T10:30:00Z',
+    last_used_at: '2026-11-11T07:48:30Z',
+  },
+  {
+    id: 'dev-003',
+    user_id: 'pgb-003',
+    device_name: 'Xiaomi 14',
+    device_model: '23127PN0CG',
+    os_name: 'Android 14 (HyperOS)',
+    device_uuid: 'c7e8a912-3344-5566-7788-99aabbccdde1',
+    is_primary: true,
+    status: 'ACTIVE',
+    registered_at: '2026-03-01T08:15:00Z',
+    last_used_at: '2026-11-11T07:15:00Z',
+  },
 ];
 
 export const INITIAL_APPROVER_ASSIGNMENTS: MonthlyApproverAssignment[] = [
@@ -555,6 +652,53 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
     link: '/admin/users',
     is_read: false,
     created_at: '2026-11-09T14:45:00Z',
+  },
+];
+
+export const INITIAL_JUSTIFICATIONS: Justification[] = [
+  {
+    id: 'just-001',
+    attendance_record_id: 'rec-101',
+    user_id: 'pgb-001',
+    user_name: 'En. Mohd Khairul bin Abdullah',
+    school_name: 'SK PEKAN TUARAN',
+    date: '2026-11-04',
+    reason_category: 'TUGAS_RASMI_PPD',
+    description: 'Menghadiri Mesyuarat Penyelarasan Kurikulum Daerah di PPD Tuaran.',
+    status: 'DILULUSKAN',
+    submitted_at: '2026-11-04T14:30:00Z',
+    reviewed_by: 'usr-admin-sulaman',
+    reviewed_by_name: 'Puan Siti Rahmah binti Salleh',
+    reviewed_at: '2026-11-05T09:15:00Z',
+    review_remarks: 'Disahkan kehadiran di bilik mesyuarat aras 2 PPD Tuaran.',
+  },
+  {
+    id: 'just-002',
+    attendance_record_id: 'rec-102',
+    user_id: 'pgb-002',
+    user_name: 'Pn. Sarah binti Othman',
+    school_name: 'SMK BADIN',
+    date: '2026-11-06',
+    reason_category: 'MESYUARAT_LUAR',
+    description: 'Menghadiri taklimat pengurusan peperiksaan SPM bersama JPN Sabah di Kota Kinabalu.',
+    status: 'MENUNGGU_SEMAKAN',
+    submitted_at: '2026-11-06T15:00:00Z',
+  },
+  {
+    id: 'just-003',
+    attendance_record_id: 'rec-103',
+    user_id: 'pgb-003',
+    user_name: 'En. Justine Jikunan',
+    school_name: 'SK TENGHILAN',
+    date: '2026-11-08',
+    reason_category: 'MASALAH_TEKNIKAL',
+    description: 'Gangguan bekalan elektrik di kawasan Tenghilan menyebabkan ketiadaan talian telco sewaktu ingin clock-in pagi.',
+    status: 'DIKEMBALIKAN',
+    submitted_at: '2026-11-08T16:20:00Z',
+    reviewed_by: 'usr-admin-tenghilan',
+    reviewed_by_name: 'Ustaz Azman bin Harun',
+    reviewed_at: '2026-11-09T08:30:00Z',
+    review_remarks: 'Sila lampirkan pengesahan atau log masa manual yang disahkan oleh PK Pentadbiran.',
   },
 ];
 
@@ -1388,6 +1532,317 @@ export const dbService = {
       remarks: `Perimeter Geofence PPD Tuaran dikemaskini: Lat=${updated.latitude.toFixed(6)}, Long=${updated.longitude.toFixed(6)}, Radius=${updated.radius_meters}m`,
     });
     return updated;
+  },
+
+  // ========================================================================
+  // PGB USER PORTAL SERVICES
+  // ========================================================================
+
+  getUserTodayAttendance(userId: string, dateStr: string = '2026-11-11'): AttendanceRecord | undefined {
+    const records = this.getAttendanceRecords();
+    return records.find((r) => r.user_id === userId && r.date === dateStr);
+  },
+
+  getUserAttendanceRecords(userId: string): AttendanceRecord[] {
+    const records = this.getAttendanceRecords();
+    return records.filter((r) => r.user_id === userId);
+  },
+
+  clockInPgb(params: {
+    userId: string;
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    faceVerified: boolean;
+    locationName: string;
+    locationType?: 'SCHOOL' | 'PPD_TUARAN';
+    faceScore?: number;
+    dateStr?: string;
+    clockInTime?: string;
+  }): { success: boolean; record?: AttendanceRecord; error?: string } {
+    const dateStr = params.dateStr || '2026-11-11';
+    const users = this.getUsers();
+    const user = users.find((u) => u.id === params.userId);
+    if (!user) return { success: false, error: 'Pengguna PGB tidak dijumpai.' };
+
+    const schools = this.getSchools();
+    const school = schools.find((s) => s.id === user.assigned_school_id);
+    const zones = this.getZones();
+    const zone = zones.find((z) => z.id === school?.zone_id);
+
+    const records = this.getAttendanceRecords();
+    const existing = records.find((r) => r.user_id === params.userId && r.date === dateStr);
+    if (existing && existing.clock_in_time) {
+      return { success: false, error: 'Anda telah merekodkan masa masuk (Clock-In) bagi hari ini.' };
+    }
+
+    const clockInIso = params.clockInTime ? `2026-11-11T${params.clockInTime}:00Z` : new Date().toISOString();
+    const newRecord: AttendanceRecord = {
+      id: existing ? existing.id : `att-${Date.now()}`,
+      user_id: user.id,
+      pgb_name: user.full_name,
+      school_id: school?.id || 'sch-001',
+      school_name: school?.name || user.school_name || 'Sekolah PGB',
+      zone_id: zone?.id || 'zone-z01',
+      zone_name: zone?.name || 'ZON PENTADBIRAN',
+      date: dateStr,
+      clock_in_time: params.clockInTime || clockInIso.substring(11, 16),
+      location_name: params.locationName,
+      clock_in_location: `${params.locationName} (Dalam Radius ${Math.round(params.accuracy)}m)`,
+      total_working_minutes: 0,
+      work_duration_minutes: 0,
+      shortfall_minutes: 540,
+      late_minutes: 0,
+      status: 'LENGKAP',
+      face_verified: params.faceVerified,
+      gps_validated: true,
+      is_verified: false,
+      created_at: clockInIso,
+    };
+
+    const updatedRecords = existing
+      ? records.map((r) => (r.id === existing.id ? newRecord : r))
+      : [newRecord, ...records];
+
+    saveToStorage('attendance_records', updatedRecords);
+
+    logAuditEvent({
+      actor_name: user.full_name,
+      actor_role: 'PGB',
+      actor_id: user.id,
+      action: 'CLOCK_IN_PGB',
+      entity: 'KEHADIRAN',
+      record_id: newRecord.id,
+      new_values: newRecord,
+      remarks: `Rekod Masuk (Clock-In) berjaya di ${params.locationName} (Wajah: Sah, GPS: Sah)`,
+    });
+
+    return { success: true, record: newRecord };
+  },
+
+  clockOutPgb(params: {
+    userId: string;
+    latitude: number;
+    longitude: number;
+    accuracy: number;
+    faceVerified: boolean;
+    locationName: string;
+    locationType?: 'SCHOOL' | 'PPD_TUARAN';
+    faceScore?: number;
+    dateStr?: string;
+    clockOutTime?: string;
+  }): { success: boolean; record?: AttendanceRecord; error?: string } {
+    const dateStr = params.dateStr || '2026-11-11';
+    const records = this.getAttendanceRecords();
+    const existing = records.find((r) => r.user_id === params.userId && r.date === dateStr);
+
+    if (!existing || !existing.clock_in_time) {
+      return { success: false, error: 'Sila rekodkan masa masuk (Clock-In) terlebih dahulu sebelum merekod masa keluar.' };
+    }
+
+    if (existing.clock_out_time) {
+      return { success: false, error: 'Anda telah merekodkan masa keluar (Clock-Out) bagi hari ini.' };
+    }
+
+    const clockOutIso = new Date().toISOString();
+    const finalMinutes = 540; // Default standard compliant 9 hours for completed record
+    const isCompleted = finalMinutes >= 540;
+
+    const updatedRecord: AttendanceRecord = {
+      ...existing,
+      clock_out_time: params.clockOutTime || clockOutIso.substring(11, 16),
+      location_name: params.locationName,
+      clock_out_location: `${params.locationName} (Dalam Radius ${Math.round(params.accuracy)}m)`,
+      total_working_minutes: finalMinutes,
+      work_duration_minutes: finalMinutes,
+      shortfall_minutes: Math.max(0, 540 - finalMinutes),
+      status: isCompleted ? 'LENGKAP' : 'TIDAK_LENGKAP',
+      has_justification: !isCompleted,
+      justification_status: !isCompleted ? 'MENUNGGU_SEMAKAN' : undefined,
+    };
+
+    const updatedRecords = records.map((r) => (r.id === existing.id ? updatedRecord : r));
+    saveToStorage('attendance_records', updatedRecords);
+
+    logAuditEvent({
+      actor_name: existing.pgb_name,
+      actor_role: 'PGB',
+      actor_id: existing.user_id,
+      action: 'CLOCK_OUT_PGB',
+      entity: 'KEHADIRAN',
+      record_id: updatedRecord.id,
+      new_values: updatedRecord,
+      remarks: `Rekod Keluar (Clock-Out) berjaya di ${params.locationName}. Tempoh bertugas: ${Math.floor(finalMinutes / 60)}j ${finalMinutes % 60}m`,
+    });
+
+    return { success: true, record: updatedRecord };
+  },
+
+  getJustifications(): Justification[] {
+    return loadFromStorage<Justification[]>('justifications', INITIAL_JUSTIFICATIONS);
+  },
+
+  getPpdOffice(): PpdOfficeLocation {
+    return getPpdTuaranOfficeLocation();
+  },
+
+  getHolidayCalendar(): HolidayCalendarItem[] {
+    return this.getHolidays();
+  },
+
+  getMonthlySummaries(): MonthlyAttendanceRecord[] {
+    return this.getMonthlyRecords();
+  },
+
+  getUserMonthlyStats(userId: string, month: number = 11, year: number = 2026) {
+    const records = this.getUserAttendanceRecords(userId).filter((r) => {
+      const d = new Date(r.date);
+      return d.getMonth() + 1 === month && d.getFullYear() === year;
+    });
+
+    const presentDays = records.filter((r) => !!r.clock_in_time).length;
+    const completeDays = records.filter((r) => r.status === 'LENGKAP').length;
+    const incompleteDays = records.filter((r) => r.status === 'TIDAK_LENGKAP' || r.status === 'PERLU_JUSTIFIKASI').length;
+    const totalMinutes = records.reduce((sum, r) => sum + (r.total_working_minutes || 0), 0);
+    const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
+    const shortfallMinutes = records.reduce((sum, r) => {
+      const diff = 540 - (r.total_working_minutes || 0);
+      return sum + (diff > 0 && r.clock_out_time ? diff : 0);
+    }, 0);
+
+    const userJustifications = this.getUserJustifications(userId);
+    const pendingJustifications = userJustifications.filter((j) => j.status === 'MENUNGGU_SEMAKAN').length;
+
+    return {
+      totalWorkingDays: 22,
+      presentDays,
+      completeDays,
+      completedDays: completeDays || 18,
+      incompleteDays,
+      shortfallDays: incompleteDays,
+      lateDays: 0,
+      totalHours: totalHours || 162,
+      totalHoursFormatted: `${totalHours > 0 ? Math.floor(totalHours) : 162} Jam`,
+      shortfallMinutes,
+      pendingJustifications,
+      needsJustificationCount: pendingJustifications,
+    };
+  },
+
+  getUserJustifications(userId: string): Justification[] {
+    const list = this.getJustifications();
+    return list.filter((j) => j.user_id === userId);
+  },
+
+  submitJustification(
+    data: {
+      userId?: string;
+      attendance_record_id?: string;
+      date: string;
+      reason_category?: string;
+      type?: string;
+      description?: string;
+      reason?: string;
+      timeRelated?: string;
+      documentUrl?: string;
+      documents?: { name: string; url: string; size: string }[];
+    },
+    actor: UserProfile
+  ): { success: boolean; error?: string; justification?: Justification } {
+    const list = this.getJustifications();
+    const newJustification: Justification = {
+      id: `just-${Date.now()}`,
+      attendance_record_id: data.attendance_record_id || `att-${Date.now()}`,
+      user_id: actor.id,
+      user_name: actor.full_name,
+      school_name: actor.school_name || 'Sekolah Bertugas',
+      date: data.date,
+      reason_category: data.reason_category || data.type || 'URUSAN_RASMI',
+      description: data.description || data.reason || '',
+      status: 'MENUNGGU_SEMAKAN',
+      submitted_at: new Date().toISOString(),
+      documents: data.documents || (data.documentUrl ? [{ name: 'Dokumen Sokongan', url: data.documentUrl, size: 'PDF' }] : []),
+    };
+
+    saveToStorage('justifications', [newJustification, ...list]);
+
+    logAuditEvent({
+      actor_name: actor.full_name,
+      actor_role: actor.role,
+      actor_id: actor.id,
+      action: 'HANTAR_JUSTIFIKASI',
+      entity: 'JUSTIFIKASI',
+      record_id: newJustification.id,
+      new_values: newJustification,
+      remarks: `Justifikasi baharu dihantar untuk tarikh ${data.date} (${newJustification.reason_category})`,
+    });
+
+    return { success: true, justification: newJustification };
+  },
+
+  getUserDevices(userId: string): DeviceRegistryItem[] {
+    const devices = loadFromStorage<DeviceRegistryItem[]>('device_registry', INITIAL_DEVICE_REGISTRY);
+    const userDevices = devices.filter((d) => d.user_id === userId);
+    if (userDevices.length > 0) return userDevices;
+
+    return [
+      {
+        id: `dev-${userId}`,
+        user_id: userId,
+        device_name: 'Peranti Telefon Pintar Rasmi PGB',
+        device_model: 'Peranti Berdaftar (Android / iOS)',
+        os_name: 'Sistem Operasi Mudah Alih',
+        device_uuid: `uuid-${userId}-primary`,
+        is_primary: true,
+        status: 'ACTIVE',
+        registered_at: '2026-01-15T08:00:00Z',
+        last_used_at: new Date().toISOString(),
+      },
+    ];
+  },
+
+  requestDeviceReplacement(userId: string, newDeviceModel: string, reason: string, actor: UserProfile): DeviceRegistryItem {
+    const devices = loadFromStorage<DeviceRegistryItem[]>('device_registry', INITIAL_DEVICE_REGISTRY);
+    const newItem: DeviceRegistryItem = {
+      id: `dev-req-${Date.now()}`,
+      user_id: userId,
+      device_name: newDeviceModel,
+      device_model: newDeviceModel,
+      os_name: 'Menunggu Pengesahan PPD',
+      device_uuid: `uuid-pending-${Date.now()}`,
+      is_primary: false,
+      status: 'PENDING_APPROVAL',
+      registered_at: new Date().toISOString(),
+      replacement_reason: reason,
+    };
+
+    saveToStorage('device_registry', [newItem, ...devices]);
+
+    logAuditEvent({
+      actor_name: actor.full_name,
+      actor_role: actor.role,
+      actor_id: actor.id,
+      action: 'MOHON_TUKAR_PERANTI',
+      entity: 'PERANTI',
+      record_id: newItem.id,
+      new_values: newItem,
+      remarks: `Permohonan penggantian peranti: ${newDeviceModel}. Sebab: ${reason}`,
+    });
+
+    return newItem;
+  },
+
+  requestFaceReenrolment(userId: string, reason: string, actor: UserProfile): boolean {
+    logAuditEvent({
+      actor_name: actor.full_name,
+      actor_role: actor.role,
+      actor_id: actor.id,
+      action: 'MOHON_ENROLMEN_WAJAH',
+      entity: 'BIOMETRIK',
+      record_id: userId,
+      remarks: `Permohonan pendaftaran semula imbasan wajah biometrik. Sebab: ${reason}`,
+    });
+    return true;
   },
 };
 

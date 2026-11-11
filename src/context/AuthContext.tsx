@@ -3,13 +3,22 @@ import { UserProfile, UserRoleType } from '@/types';
 import { dbService } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
 
+export type PortalModeType = 'ADMIN' | 'USER';
+
 interface AuthContextType {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password?: string) => Promise<{ success: boolean; error?: string }>;
+  portalMode: PortalModeType;
+  setPortalMode: (mode: PortalModeType) => void;
+  login: (
+    email: string,
+    password?: string,
+    portal?: PortalModeType
+  ) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   switchRole: (role: UserRoleType) => void;
+  switchUser: (userId: string) => void;
   hasRole: (roles: UserRoleType[]) => boolean;
   canAccessZone: (zoneId: string) => boolean;
   canAccessSchool: (schoolId: string) => boolean;
@@ -18,22 +27,36 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const AUTH_STORAGE_KEY = 'ehadir_tuaran_auth_session';
+const PORTAL_STORAGE_KEY = 'ehadir_tuaran_portal_mode';
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [portalMode, setPortalModeState] = useState<PortalModeType>('ADMIN');
+
+  const setPortalMode = (mode: PortalModeType) => {
+    setPortalModeState(mode);
+    localStorage.setItem(PORTAL_STORAGE_KEY, mode);
+  };
 
   // Restore session
   useEffect(() => {
     try {
+      const storedPortal = localStorage.getItem(PORTAL_STORAGE_KEY) as PortalModeType | null;
+      if (storedPortal === 'ADMIN' || storedPortal === 'USER') {
+        setPortalModeState(storedPortal);
+      }
+
       const stored = localStorage.getItem(AUTH_STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Refresh with latest db data
         const freshUsers = dbService.getUsers();
         const matched = freshUsers.find((u) => u.id === parsed.id);
-        if (matched && matched.status === 'ACTIVE' && matched.role !== 'PGB') {
+        if (matched && matched.status === 'ACTIVE') {
           setUser(matched);
+          if (matched.role === 'PGB') {
+            setPortalModeState('USER');
+          }
         } else {
           localStorage.removeItem(AUTH_STORAGE_KEY);
         }
@@ -52,28 +75,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, []);
 
-  const login = async (email: string, _password?: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (
+    email: string,
+    _password?: string,
+    targetPortal?: PortalModeType
+  ): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600)); // Smooth auth latency simulation
+    await new Promise((resolve) => setTimeout(resolve, 500)); // Smooth auth latency simulation
 
     const users = dbService.getUsers();
     const cleanEmail = email.trim().toLowerCase();
-    const matched = users.find((u) => u.email.toLowerCase() === cleanEmail);
+    const matched = users.find(
+      (u) => u.email.toLowerCase() === cleanEmail || u.id.toLowerCase() === cleanEmail
+    );
 
     if (!matched) {
       setIsLoading(false);
       return {
         success: false,
-        error: 'Emel atau kata laluan tidak sah. Sila semak semula kredensial anda.',
+        error: 'Emel atau ID Pengguna tidak sah. Sila semak semula kredensial anda.',
       };
     }
 
-    // Role check: PGB accounts are strictly prohibited from Admin Portal
-    if (matched.role === 'PGB') {
+    // Role check depending on portal target
+    const currentPortal = targetPortal || portalMode;
+    if (currentPortal === 'ADMIN' && matched.role === 'PGB') {
       setIsLoading(false);
       return {
         success: false,
-        error: 'Akaun Pengetua / Guru Besar (PGB) tidak dibenarkan mengakses Portal Pentadbiran ini.',
+        error: 'Akaun Pengetua / Guru Besar (PGB) perlu menggunakan Portal Pengguna e-HADIR TUARAN.',
       };
     }
 
@@ -87,6 +117,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     setUser(matched);
+    if (matched.role === 'PGB') {
+      setPortalMode('USER');
+    }
     localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(matched));
 
     logAuditEvent({
@@ -95,7 +128,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       actor_id: matched.id,
       action: 'LOG_MASUK',
       entity: 'AUTENTIKASI',
-      remarks: `Log masuk berjaya ke Portal Pentadbiran sebagai ${matched.role}.`,
+      remarks: `Log masuk berjaya ke Portal ${matched.role === 'PGB' ? 'Pengguna PGB' : 'Pentadbiran'} sebagai ${matched.role}.`,
     });
 
     setIsLoading(false);
@@ -123,6 +156,23 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const targetUser = users.find((u) => u.role === role);
     if (targetUser) {
       setUser(targetUser);
+      if (targetUser.role === 'PGB') {
+        setPortalMode('USER');
+      } else {
+        setPortalMode('ADMIN');
+      }
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(targetUser));
+    }
+  };
+
+  const switchUser = (userId: string) => {
+    const users = dbService.getUsers();
+    const targetUser = users.find((u) => u.id === userId);
+    if (targetUser) {
+      setUser(targetUser);
+      if (targetUser.role === 'PGB') {
+        setPortalMode('USER');
+      }
       localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(targetUser));
     }
   };
@@ -159,9 +209,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         user,
         isAuthenticated: !!user,
         isLoading,
+        portalMode,
+        setPortalMode,
         login,
         logout,
         switchRole,
+        switchUser,
         hasRole,
         canAccessZone,
         canAccessSchool,
@@ -179,4 +232,3 @@ export const useAuth = () => {
   }
   return context;
 };
-

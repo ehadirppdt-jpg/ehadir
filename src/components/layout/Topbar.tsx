@@ -62,6 +62,18 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleMobileMenu, onNavigate }
 
       {/* Right: Actions, Role Switcher, Notifications, Profile */}
       <div className="flex items-center gap-2.5">
+        {/* Quick Portal Switcher to User Portal */}
+        <button
+          onClick={() => {
+            switchRole('PGB');
+          }}
+          className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors"
+          title="Beralih ke Portal Pengguna (PGB)"
+        >
+          <ExternalLink className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Portal PGB</span>
+        </button>
+
         {/* Quick Role Switcher for Evaluators / Administrators */}
         <div className="relative">
           <button
@@ -126,6 +138,19 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleMobileMenu, onNavigate }
                 </div>
                 {user?.role === 'MONITORING_ADMIN' && <CheckCircle2 className="w-4 h-4 text-slate-700" />}
               </button>
+
+              <div className="pt-1 mt-1 border-t border-slate-100">
+                <button
+                  onClick={() => handleRoleSelect('PGB')}
+                  className="w-full text-left px-3 py-2 flex items-center justify-between hover:bg-emerald-50 transition-colors text-emerald-800 font-bold"
+                >
+                  <div>
+                    <p className="font-semibold text-emerald-700">Pengetua / Guru Besar (PGB)</p>
+                    <p className="text-[10px] text-emerald-600">Beralih terus ke Portal Pengguna PGB</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-emerald-600" />
+                </button>
+              </div>
             </div>
           )}
         </div>

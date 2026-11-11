@@ -204,6 +204,81 @@ assert(
   'Edge Function verify-geofence menguatkuasakan semakan Haversine & sekatan ketepatan GPS'
 );
 
+// ------------------------------------------------------------------------
+// 7. UJIAN PORTAL PENGGUNA (PGB USER PORTAL) & MOCKUP FIDELITY
+// ------------------------------------------------------------------------
+console.log('\n--- 7. UJIAN PORTAL PENGGUNA (PGB USER PORTAL) & MOCKUP FIDELITY ---');
+
+const userLayoutTs = fs.readFileSync(path.resolve('src/modules/user-portal/components/UserLayout.tsx'), 'utf8');
+assert(
+  userLayoutTs.includes('e-HADIR TUARAN') && userLayoutTs.includes('Menu') && userLayoutTs.includes('Bell') && userLayoutTs.includes('fixed bottom-0'),
+  'UserLayout.tsx mengandungi tajuk e-HADIR TUARAN, ikon menu hamburger, loceng notifikasi dan bottom navigation bar mudah alih'
+);
+
+const userDashboardTs = fs.readFileSync(path.resolve('src/modules/user-portal/pages/UserDashboardPage.tsx'), 'utf8');
+assert(
+  userDashboardTs.includes('SELAMAT DATANG') &&
+  userDashboardTs.includes('Dashboard Saya') &&
+  userDashboardTs.includes('Kehadiran Hari Ini') &&
+  userDashboardTs.includes('REKOD MASUK') &&
+  userDashboardTs.includes('REKOD KELUAR') &&
+  userDashboardTs.includes('Statistik Bulanan') &&
+  userDashboardTs.includes('Kehadiran lengkap') &&
+  userDashboardTs.includes('Jumlah jam bekerja') &&
+  userDashboardTs.includes('Jumlah lewat') &&
+  userDashboardTs.includes('Perlu justifikasi'),
+  'UserDashboardPage.tsx menepati 100% susun atur visual dan komponen mockup (media_1794378446292_f5544491.png)'
+);
+
+const attendanceModalTs = fs.readFileSync(path.resolve('src/modules/user-portal/components/AttendanceActionModal.tsx'), 'utf8');
+assert(
+  attendanceModalTs.includes('1. Peranti') &&
+  attendanceModalTs.includes('2. Wajah') &&
+  attendanceModalTs.includes('3. GPS') &&
+  attendanceModalTs.includes('4. Geofence') &&
+  attendanceModalTs.includes('5. Sah'),
+  'AttendanceActionModal.tsx melaksanakan aliran 5-langkah pengesahan: Peranti, Biometrik Hayat Wajah, GPS, Geofence & Transaksi Pelayan'
+);
+
+const userCalendarTs = fs.readFileSync(path.resolve('src/modules/user-portal/pages/UserCalendarPage.tsx'), 'utf8');
+assert(
+  userCalendarTs.includes('Kehadiran Lengkap') &&
+  userCalendarTs.includes('Perlu Justifikasi') &&
+  userCalendarTs.includes('Hujung Minggu') &&
+  userCalendarTs.includes('Cuti Umum') &&
+  userCalendarTs.includes('Cuti Sekolah') &&
+  userCalendarTs.includes('Menunggu Semakan'),
+  'UserCalendarPage.tsx mengandungi 6 petunjuk warna rasmi kalendar kehadiran PGB'
+);
+
+const userJustificationsTs = fs.readFileSync(path.resolve('src/modules/user-portal/pages/UserJustificationsPage.tsx'), 'utf8');
+assert(
+  userJustificationsTs.includes('URUSAN_RASMI') &&
+  userJustificationsTs.includes('MESYUARAT_LUAR') &&
+  userJustificationsTs.includes('TUGAS_RASMI_PPD') &&
+  userJustificationsTs.includes('LEWAT_HADIR') &&
+  userJustificationsTs.includes('PULANG_AWAL') &&
+  userJustificationsTs.includes('MASALAH_TEKNIKAL') &&
+  userJustificationsTs.includes('TIADA_REKOD_MASUK') &&
+  userJustificationsTs.includes('TIADA_REKOD_KELUAR') &&
+  userJustificationsTs.includes('LAIN_LAIN'),
+  'UserJustificationsPage.tsx menguatkuasakan 9 kategori justifikasi rasmi bagi PGB'
+);
+
+const appTs = fs.readFileSync(path.resolve('src/App.tsx'), 'utf8');
+assert(
+  appTs.includes('UserLayout') &&
+  appTs.includes('UserDashboardPage') &&
+  appTs.includes('UserCalendarPage') &&
+  appTs.includes('UserAttendanceHistoryPage') &&
+  appTs.includes('UserJustificationsPage') &&
+  appTs.includes('UserMonthlyReportPage') &&
+  appTs.includes('UserProfilePage') &&
+  appTs.includes('UserDevicePage') &&
+  appTs.includes('UserNotificationsPage'),
+  'App.tsx menyokong penghalaan dwil-portal (Portal Pentadbiran & Portal Pengguna PGB) dengan modul penuh'
+);
+
 console.log('\n========================================================================');
 console.log(`KEPUTUSAN KESELURUHAN: ${passedTests}/${totalTests} UJIAN BERJAYA LULUS!`);
 console.log('========================================================================\n');

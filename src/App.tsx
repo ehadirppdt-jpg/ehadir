@@ -3,7 +3,7 @@ import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 
-// Modules
+// Admin Modules
 import { LoginPage } from '@/modules/auth/LoginPage';
 import { AdminDashboard } from '@/modules/dashboard/AdminDashboard';
 import { ZoneManagementPage } from '@/modules/zones/ZoneManagementPage';
@@ -24,15 +24,27 @@ import { SystemSettingsPage } from '@/modules/system/SystemSettingsPage';
 import { MyProfilePage } from '@/modules/profile/MyProfilePage';
 import { ShieldAlert } from 'lucide-react';
 
+// User Portal Modules
+import { UserLayout } from '@/modules/user-portal/components/UserLayout';
+import { UserDashboardPage } from '@/modules/user-portal/pages/UserDashboardPage';
+import { UserCalendarPage } from '@/modules/user-portal/pages/UserCalendarPage';
+import { UserAttendanceHistoryPage } from '@/modules/user-portal/pages/UserAttendanceHistoryPage';
+import { UserJustificationsPage } from '@/modules/user-portal/pages/UserJustificationsPage';
+import { UserMonthlyReportPage } from '@/modules/user-portal/pages/UserMonthlyReportPage';
+import { UserProfilePage } from '@/modules/user-portal/pages/UserProfilePage';
+import { UserDevicePage } from '@/modules/user-portal/pages/UserDevicePage';
+import { UserNotificationsPage } from '@/modules/user-portal/pages/UserNotificationsPage';
+
 const MainApp: React.FC = () => {
-  const { user, isAuthenticated, isLoading } = useAuth();
-  const [currentPath, setCurrentPath] = useState<string>('/admin/dashboard');
+  const { user, isAuthenticated, isLoading, portalMode, setPortalMode } = useAuth();
+  const [adminPath, setAdminPath] = useState<string>('/admin/dashboard');
+  const [userPath, setUserPath] = useState<string>('/user/dashboard');
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white font-extrabold text-xl shadow-lg ring-4 ring-blue-500/20 animate-pulse">
+          <div className="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-white font-extrabold text-xl shadow-lg ring-4 ring-emerald-500/20 animate-pulse">
             eH
           </div>
           <span className="text-xs text-slate-400 font-semibold tracking-wider uppercase">
@@ -44,17 +56,63 @@ const MainApp: React.FC = () => {
   }
 
   if (!isAuthenticated) {
-    return <LoginPage onSuccess={() => setCurrentPath('/admin/dashboard')} />;
+    return (
+      <LoginPage
+        onSuccess={() => {
+          if (portalMode === 'USER') {
+            setUserPath('/user/dashboard');
+          } else {
+            setAdminPath('/admin/dashboard');
+          }
+        }}
+      />
+    );
   }
 
-  // Access control validation for restricted pages
+  // --------------------------------------------------------------------------
+  // USER PORTAL (PGB)
+  // --------------------------------------------------------------------------
+  if (portalMode === 'USER' || user?.role === 'PGB') {
+    const renderUserModule = () => {
+      switch (userPath) {
+        case '/user/dashboard':
+          return <UserDashboardPage onNavigate={setUserPath} />;
+        case '/user/calendar':
+          return <UserCalendarPage onNavigate={setUserPath} />;
+        case '/user/history':
+          return <UserAttendanceHistoryPage />;
+        case '/user/justifications':
+          return <UserJustificationsPage />;
+        case '/user/monthly-report':
+          return <UserMonthlyReportPage />;
+        case '/user/profile':
+          return <UserProfilePage />;
+        case '/user/devices':
+          return <UserDevicePage />;
+        case '/user/notifications':
+          return <UserNotificationsPage onNavigate={setUserPath} />;
+        default:
+          return <UserDashboardPage onNavigate={setUserPath} />;
+      }
+    };
+
+    return (
+      <UserLayout currentPath={userPath} onNavigate={setUserPath}>
+        {renderUserModule()}
+      </UserLayout>
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // ADMIN PORTAL
+  // --------------------------------------------------------------------------
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
   const isSuperAdminOnlyPath =
-    currentPath === '/admin/admins' ||
-    currentPath === '/admin/settings' ||
-    currentPath === '/admin/approver-assignments';
+    adminPath === '/admin/admins' ||
+    adminPath === '/admin/settings' ||
+    adminPath === '/admin/approver-assignments';
 
-  const renderModule = () => {
+  const renderAdminModule = () => {
     if (isSuperAdminOnlyPath && !isSuperAdmin) {
       return (
         <div className="bg-rose-50 border border-rose-200 rounded-2xl p-8 text-center max-w-lg mx-auto mt-12">
@@ -63,10 +121,11 @@ const MainApp: React.FC = () => {
           </div>
           <h3 className="text-base font-bold text-rose-900">Akses Tidak Dibenarkan</h3>
           <p className="text-xs text-rose-700 mt-1.5 leading-relaxed">
-            Halaman ini dikhaskan untuk <strong>Ketua Pentadbir (Head Admin)</strong> sahaja. Peranan anda ({user?.role}) tidak mempunyai kebenaran untuk mengakses modul ini.
+            Halaman ini dikhaskan untuk <strong>Ketua Pentadbir (Head Admin)</strong> sahaja.
+            Peranan anda ({user?.role}) tidak mempunyai kebenaran untuk mengakses modul ini.
           </p>
           <button
-            onClick={() => setCurrentPath('/admin/dashboard')}
+            onClick={() => setAdminPath('/admin/dashboard')}
             className="mt-5 px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-lg transition-colors"
           >
             Kembali ke Dashboard Pentadbiran
@@ -75,15 +134,15 @@ const MainApp: React.FC = () => {
       );
     }
 
-    switch (currentPath) {
+    switch (adminPath) {
       case '/admin/dashboard':
-        return <AdminDashboard onNavigate={setCurrentPath} />;
+        return <AdminDashboard onNavigate={setAdminPath} />;
       case '/admin/zones':
         return <ZoneManagementPage />;
       case '/admin/schools':
         return (
           <SchoolManagementPage
-            onNavigateToMap={(_id) => setCurrentPath('/admin/locations/map')}
+            onNavigateToMap={(_id) => setAdminPath('/admin/locations/map')}
           />
         );
       case '/admin/users':
@@ -105,7 +164,7 @@ const MainApp: React.FC = () => {
       case '/admin/system/calendar':
         return <CalendarAndRulesPage />;
       case '/admin/notifications':
-        return <NotificationCentrePage onNavigate={setCurrentPath} />;
+        return <NotificationCentrePage onNavigate={setAdminPath} />;
       case '/admin/reports':
         return <ReportsAnalyticsPage />;
       case '/admin/audit-logs':
@@ -115,13 +174,13 @@ const MainApp: React.FC = () => {
       case '/admin/profile':
         return <MyProfilePage />;
       default:
-        return <AdminDashboard onNavigate={setCurrentPath} />;
+        return <AdminDashboard onNavigate={setAdminPath} />;
     }
   };
 
   return (
-    <AdminLayout currentPath={currentPath} onNavigate={setCurrentPath}>
-      {renderModule()}
+    <AdminLayout currentPath={adminPath} onNavigate={setAdminPath}>
+      {renderAdminModule()}
     </AdminLayout>
   );
 };
@@ -137,4 +196,3 @@ export const App: React.FC = () => {
 };
 
 export default App;
-

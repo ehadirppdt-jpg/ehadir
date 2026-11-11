@@ -21,7 +21,21 @@ export type MonthlyStatusType =
   | 'DISAHKAN'
   | 'DITOLAK';
 
-export type JustificationStatusType = 'MENUNGGU_SEMAKAN' | 'DISAHKAN' | 'DITOLAK';
+export type JustificationStatusType = 'MENUNGGU_SEMAKAN' | 'DILULUSKAN' | 'DISAHKAN' | 'DITOLAK' | 'DIKEMBALIKAN';
+
+export interface DeviceRegistryItem {
+  id: string;
+  user_id: string;
+  device_name: string;
+  device_model: string;
+  os_name: string;
+  device_uuid: string;
+  is_primary: boolean;
+  status: 'ACTIVE' | 'PENDING_APPROVAL' | 'BLOCKED';
+  registered_at: string;
+  last_used_at?: string;
+  replacement_reason?: string;
+}
 
 export interface UserProfile {
   id: string;
@@ -67,6 +81,7 @@ export interface School {
   latitude: number;
   longitude: number;
   geofence_radius_meters: number;
+  geofence_radius?: number;
   status: AccountStatusType;
   location_status: 'VERIFIED' | 'UNVERIFIED' | 'PENDING';
   zone_id?: string;
@@ -116,10 +131,13 @@ export interface AttendanceRecord {
   clock_in_time?: string;
   clock_out_time?: string;
   total_working_minutes: number;
+  work_duration_minutes?: number;
+  shortfall_minutes?: number;
   late_minutes: number;
   status: AttendanceStatusType;
   face_verified: boolean;
   gps_validated: boolean;
+  location_name?: string;
   clock_in_location?: string;
   clock_out_location?: string;
   has_justification?: boolean;
@@ -127,6 +145,9 @@ export interface AttendanceRecord {
   is_verified: boolean;
   created_at: string;
 }
+
+export type HolidayRecord = HolidayCalendarItem;
+export type MonthlyAttendanceSummary = MonthlyAttendanceRecord;
 
 export interface Justification {
   id: string;
@@ -168,6 +189,8 @@ export interface MonthlyAttendanceRecord {
   assigned_approver_name?: string;
   generated_at: string;
   submitted_at?: string;
+  verified_at?: string;
+  verification_remarks?: string;
 }
 
 export interface MonthlyApproverAssignment {

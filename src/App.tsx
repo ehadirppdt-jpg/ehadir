@@ -32,7 +32,6 @@ import { UserAttendanceHistoryPage } from '@/modules/user-portal/pages/UserAtten
 import { UserJustificationsPage } from '@/modules/user-portal/pages/UserJustificationsPage';
 import { UserMonthlyReportPage } from '@/modules/user-portal/pages/UserMonthlyReportPage';
 import { UserProfilePage } from '@/modules/user-portal/pages/UserProfilePage';
-import { UserDevicePage } from '@/modules/user-portal/pages/UserDevicePage';
 import { UserNotificationsPage } from '@/modules/user-portal/pages/UserNotificationsPage';
 
 const MainApp: React.FC = () => {
@@ -87,8 +86,6 @@ const MainApp: React.FC = () => {
           return <UserMonthlyReportPage />;
         case '/user/profile':
           return <UserProfilePage />;
-        case '/user/devices':
-          return <UserDevicePage />;
         case '/user/notifications':
           return <UserNotificationsPage onNavigate={setUserPath} />;
         default:

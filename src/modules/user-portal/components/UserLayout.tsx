@@ -8,7 +8,6 @@ import {
   FileText,
   Clock,
   User,
-  Smartphone,
   LogOut,
   Shield,
   CheckCircle,
@@ -82,7 +81,7 @@ export const UserLayout: React.FC<UserLayoutProps> = ({
       ],
     },
     {
-      group: 'SISTEM & PERANTI',
+      group: 'SISTEM',
       items: [
         {
           label: 'Notifikasi',
@@ -93,11 +92,6 @@ export const UserLayout: React.FC<UserLayoutProps> = ({
           label: 'Profil Saya',
           path: '/user/profile',
           icon: <User className="w-4 h-4" />,
-        },
-        {
-          label: 'Pengurusan Peranti',
-          path: '/user/devices',
-          icon: <Smartphone className="w-4 h-4" />,
         },
       ],
     },

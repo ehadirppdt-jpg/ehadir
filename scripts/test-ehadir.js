@@ -274,9 +274,9 @@ assert(
   appTs.includes('UserJustificationsPage') &&
   appTs.includes('UserMonthlyReportPage') &&
   appTs.includes('UserProfilePage') &&
-  appTs.includes('UserDevicePage') &&
+  !appTs.includes('UserDevicePage') &&
   appTs.includes('UserNotificationsPage'),
-  'App.tsx menyokong penghalaan dwil-portal (Portal Pentadbiran & Portal Pengguna PGB) dengan modul penuh'
+  'App.tsx menyokong penghalaan dwil-portal (Portal Pentadbiran & Portal Pengguna PGB) dengan modul penuh tanpa modul peranti'
 );
 
 console.log('\n========================================================================');

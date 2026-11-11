@@ -52,13 +52,13 @@ export const UserNotificationsPage: React.FC<UserNotificationsPageProps> = ({ on
     },
     {
       id: 'notif-4',
-      title: 'Peranti Mudah Alih Telah Disahkan',
+      title: 'Pendaftaran Biometrik Wajah Sah',
       message:
-        'Peranti telefon pintar anda telah berjaya diikatkan dengan profil biometrik oleh pentadbir sistem.',
+        'Profil biometrik imbasan wajah anda telah disahkan aktif oleh pentadbir sistem PPD Tuaran.',
       timestamp: '2026-10-15T09:00:00Z',
       type: 'SUCCESS',
       isRead: true,
-      link: '/user/devices',
+      link: '/user/profile',
     },
   ]);
 

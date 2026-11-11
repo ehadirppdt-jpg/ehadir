@@ -1225,6 +1225,7 @@ export const dbService = {
     user_id?: string;
   }): AttendanceRecord[] {
     const records = loadFromStorage<AttendanceRecord[]>('attendance_records', [
+      // ── Today's records for Admin Portal Dashboard ──────────────────────
       {
         id: 'att-001',
         user_id: 'pgb-001',
@@ -1243,6 +1244,8 @@ export const dbService = {
         gps_validated: true,
         clock_in_location: 'SK Pekan Tuaran (Dalam Radius 24m)',
         clock_out_location: 'SK Pekan Tuaran (Dalam Radius 18m)',
+        location_name: 'SK Pekan Tuaran',
+        work_duration_minutes: 553,
         is_verified: true,
         created_at: '2026-11-11T07:22:10Z',
       },
@@ -1256,12 +1259,16 @@ export const dbService = {
         zone_name: 'ZON MENGKABONG',
         date: '2026-11-11',
         clock_in_time: '2026-11-11T07:48:30Z',
-        total_working_minutes: 545,
+        clock_out_time: '2026-11-11T16:50:00Z',
+        total_working_minutes: 541,
         late_minutes: 0,
         status: 'LENGKAP',
         face_verified: true,
         gps_validated: true,
         clock_in_location: 'SMK Badin (Dalam Radius 45m)',
+        clock_out_location: 'SMK Badin (Dalam Radius 32m)',
+        location_name: 'SMK Badin',
+        work_duration_minutes: 541,
         has_justification: false,
         is_verified: false,
         created_at: '2026-11-11T07:48:30Z',
@@ -1282,6 +1289,8 @@ export const dbService = {
         face_verified: true,
         gps_validated: true,
         clock_in_location: 'SK Tenghilan (Dalam Radius 30m)',
+        location_name: 'SK Tenghilan',
+        work_duration_minutes: 420,
         is_verified: false,
         created_at: '2026-11-11T07:15:00Z',
       },
@@ -1304,6 +1313,13 @@ export const dbService = {
         is_verified: false,
         created_at: '2026-11-11T08:00:00Z',
       },
+      // ── November 2026 — PGB Sarah (pgb-002) full month sample ───────────
+      { id: 'att-s-1101', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-03', clock_in_time: '2026-11-03T07:30:00Z', clock_out_time: '2026-11-03T16:40:00Z', total_working_minutes: 550, late_minutes: 0, status: 'LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'SMK Badin', location_name: 'SMK Badin', work_duration_minutes: 550, is_verified: true, created_at: '2026-11-03T07:30:00Z' },
+      { id: 'att-s-1102', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-04', clock_in_time: '2026-11-04T07:45:00Z', clock_out_time: '2026-11-04T16:48:00Z', total_working_minutes: 543, late_minutes: 0, status: 'LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'SMK Badin', location_name: 'SMK Badin', work_duration_minutes: 543, is_verified: true, created_at: '2026-11-04T07:45:00Z' },
+      { id: 'att-s-1103', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-05', clock_in_time: '2026-11-05T08:00:00Z', clock_out_time: '2026-11-05T15:50:00Z', total_working_minutes: 470, late_minutes: 0, status: 'TIDAK_LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'PPD Tuaran', location_name: 'Pejabat PPD Tuaran', work_duration_minutes: 470, shortfall_minutes: 70, has_justification: true, justification_status: 'DILULUSKAN', is_verified: false, created_at: '2026-11-05T08:00:00Z' },
+      { id: 'att-s-1104', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-06', clock_in_time: '2026-11-06T07:20:00Z', clock_out_time: '2026-11-06T16:30:00Z', total_working_minutes: 550, late_minutes: 0, status: 'LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'SMK Badin', location_name: 'SMK Badin', work_duration_minutes: 550, is_verified: true, created_at: '2026-11-06T07:20:00Z' },
+      { id: 'att-s-1105', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-07', clock_in_time: '2026-11-07T07:35:00Z', clock_out_time: '2026-11-07T16:45:00Z', total_working_minutes: 550, late_minutes: 0, status: 'LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'SMK Badin', location_name: 'SMK Badin', work_duration_minutes: 550, is_verified: true, created_at: '2026-11-07T07:35:00Z' },
+      { id: 'att-s-1106', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-10', clock_in_time: '2026-11-10T07:50:00Z', clock_out_time: '2026-11-10T17:00:00Z', total_working_minutes: 550, late_minutes: 0, status: 'LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'SMK Badin', location_name: 'SMK Badin', work_duration_minutes: 550, is_verified: false, created_at: '2026-11-10T07:50:00Z' },
     ]);
 
     if (!filter) return records;

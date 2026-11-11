@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { UserProfile, UserRoleType } from '@/types';
 import { dbService } from '@/lib/db';
 import { logAuditEvent } from '@/lib/audit';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 export type PortalModeType = 'ADMIN' | 'USER';
 
@@ -60,13 +61,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
           localStorage.removeItem(AUTH_STORAGE_KEY);
         }
-      } else {
-        // Default initial session: Head Admin (Super Admin) for immediate access
-        const defaultAdmin = dbService.getUsers().find((u) => u.role === 'SUPER_ADMIN');
-        if (defaultAdmin) {
-          setUser(defaultAdmin);
-          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(defaultAdmin));
-        }
       }
     } catch (e) {
       console.error('Session restoration failed', e);
@@ -77,14 +71,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (
     email: string,
-    _password?: string,
+    password?: string,
     targetPortal?: PortalModeType
   ): Promise<{ success: boolean; error?: string }> => {
     setIsLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 500)); // Smooth auth latency simulation
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
+    const cleanEmail = email.trim().toLowerCase();
+
+    // If Supabase is configured and not in mock fallback mode, attempt live Supabase Auth
+    if (isSupabaseConfigured && import.meta.env.VITE_ENABLE_MOCK_FALLBACK === 'false' && password) {
+      try {
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
+
+        if (authData?.user && !authError) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', authData.user.id)
+            .single();
+
+          if (profile) {
+            setUser(profile as UserProfile);
+            if (profile.role === 'PGB') {
+              setPortalMode('USER');
+            }
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(profile));
+            setIsLoading(false);
+            return { success: true };
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase auth attempt returned:', err);
+      }
+    }
 
     const users = dbService.getUsers();
-    const cleanEmail = email.trim().toLowerCase();
     const matched = users.find(
       (u) => u.email.toLowerCase() === cleanEmail || u.id.toLowerCase() === cleanEmail
     );
@@ -136,6 +161,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = () => {
+    if (isSupabaseConfigured) {
+      supabase.auth.signOut().catch(() => {});
+    }
     if (user) {
       logAuditEvent({
         actor_name: user.full_name,

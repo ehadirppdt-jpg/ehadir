@@ -6,10 +6,7 @@ import {
   AlertCircle,
   HelpCircle,
   ArrowRight,
-  School,
-  Sparkles,
   UserCheck,
-  Smartphone,
   Eye,
   EyeOff,
 } from 'lucide-react';
@@ -23,8 +20,8 @@ interface LoginPageProps {
 export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
   const { login, setPortalMode } = useAuth();
   const [selectedPortal, setSelectedPortal] = useState<PortalModeType>('USER');
-  const [email, setEmail] = useState('sarah.othman@moe.gov.my');
-  const [password, setPassword] = useState('Password@123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,11 +33,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
     setSelectedPortal(portal);
     setPortalMode(portal);
     setErrorMessage(null);
-    if (portal === 'USER') {
-      setEmail('sarah.othman@moe.gov.my'); // SMK Badin (PGB)
-    } else {
-      setEmail('admin.super@ppdtuaran.edu.my'); // Head Admin
-    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -60,14 +52,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleQuickFill = (testEmail: string, portal: PortalModeType) => {
-    setSelectedPortal(portal);
-    setPortalMode(portal);
-    setEmail(testEmail);
-    setPassword('Password@123');
-    setErrorMessage(null);
   };
 
   return (
@@ -206,74 +190,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onSuccess }) => {
               )}
             </button>
           </form>
-
-          {/* Quick Demo Fill Buttons */}
-          <div className="mt-6 pt-5 border-t border-slate-800">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5 text-center flex items-center justify-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              Pilih Akaun Pantas untuk Demonstrasi
-            </p>
-
-            {selectedPortal === 'USER' ? (
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('sarah.othman@moe.gov.my', 'USER')}
-                  className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition-colors"
-                >
-                  <p className="font-bold text-emerald-400">Pn Sarah (SMK Badin)</p>
-                  <p className="text-[10px] text-slate-400 truncate">Zon Mengkabong (PGB)</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('khairul.abdullah@moe.gov.my', 'USER')}
-                  className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition-colors"
-                >
-                  <p className="font-bold text-emerald-400">En Khairul (SK Pekan)</p>
-                  <p className="text-[10px] text-slate-400 truncate">Zon Sulaman (PGB)</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('justine.jikunan@moe.gov.my', 'USER')}
-                  className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition-colors"
-                >
-                  <p className="font-bold text-emerald-400">En Justine (SK Tenghilan)</p>
-                  <p className="text-[10px] text-slate-400 truncate">Zon Tenghilan (PGB)</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('richard.gampalid@moe.gov.my', 'USER')}
-                  className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition-colors"
-                >
-                  <p className="font-bold text-emerald-400">En Richard (SK Kiulu)</p>
-                  <p className="text-[10px] text-slate-400 truncate">Zon Kiulu (PGB)</p>
-                </button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('admin.super@ppdtuaran.edu.my', 'ADMIN')}
-                  className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition-colors"
-                >
-                  <p className="font-bold text-blue-400">Head Admin</p>
-                  <p className="text-[10px] text-slate-400 truncate">Akses Penuh 6 Zon</p>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickFill('admin.tenghilan@ppdtuaran.edu.my', 'ADMIN')}
-                  className="p-2 rounded-xl bg-slate-950 hover:bg-slate-800/80 border border-slate-800 text-left transition-colors"
-                >
-                  <p className="font-bold text-teal-400">Admin Zon Z01/Z02</p>
-                  <p className="text-[10px] text-slate-400 truncate">Tenghilan & Mengkabong</p>
-                </button>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Footer info */}

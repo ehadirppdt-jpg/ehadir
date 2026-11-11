@@ -15,7 +15,6 @@ import {
   ChevronRight,
   School,
   ExternalLink,
-  Users,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { dbService } from '@/lib/db';
@@ -31,13 +30,8 @@ export const UserLayout: React.FC<UserLayoutProps> = ({
   onNavigate,
   children,
 }) => {
-  const { user, logout, setPortalMode, switchUser } = useAuth();
+  const { user, logout, setPortalMode } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [quickSwitchOpen, setQuickSwitchOpen] = useState(false);
-
-  // Available PGB users for quick testing across all 6 zones
-  const allUsers = dbService.getUsers();
-  const pgbUsers = allUsers.filter((u) => u.role === 'PGB');
 
   const navItems = [
     {
@@ -178,47 +172,6 @@ export const UserLayout: React.FC<UserLayoutProps> = ({
               >
                 <X className="w-4 h-4" />
               </button>
-            </div>
-
-            {/* Quick Demo Switcher Selector */}
-            <div className="px-5 py-3 bg-slate-950/40 border-b border-slate-800/80">
-              <div className="flex items-center justify-between mb-1.5">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1">
-                  <Users className="w-3 h-3 text-emerald-400" />
-                  Tukar Akaun PGB (Demo)
-                </span>
-                <button
-                  onClick={() => setQuickSwitchOpen(!quickSwitchOpen)}
-                  className="text-[10px] text-emerald-400 hover:underline font-semibold"
-                >
-                  {quickSwitchOpen ? 'Tutup' : 'Pilih'}
-                </button>
-              </div>
-
-              {quickSwitchOpen && (
-                <div className="space-y-1 mt-2 max-h-40 overflow-y-auto pr-1">
-                  {pgbUsers.map((pgb) => (
-                    <button
-                      key={pgb.id}
-                      onClick={() => {
-                        switchUser(pgb.id);
-                        setQuickSwitchOpen(false);
-                      }}
-                      className={`w-full text-left p-1.5 rounded-lg text-[11px] transition-colors flex items-center justify-between ${
-                        user?.id === pgb.id
-                          ? 'bg-emerald-950 text-emerald-300 font-bold border border-emerald-800/60'
-                          : 'text-slate-300 hover:bg-slate-800'
-                      }`}
-                    >
-                      <div className="truncate">
-                        <p className="truncate font-semibold">{pgb.full_name}</p>
-                        <p className="text-[10px] text-slate-400 truncate">{pgb.school_name}</p>
-                      </div>
-                      {user?.id === pgb.id && <CheckCircle className="w-3 h-3 text-emerald-400 shrink-0 ml-1" />}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
 
             {/* Navigation Groups */}

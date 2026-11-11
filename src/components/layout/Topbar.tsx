@@ -4,11 +4,8 @@ import {
   Bell,
   User,
   ShieldCheck,
-  ChevronDown,
   LogOut,
-  Sparkles,
   ExternalLink,
-  CheckCircle2,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { dbService } from '@/lib/db';
@@ -21,17 +18,11 @@ interface TopbarProps {
 
 export const Topbar: React.FC<TopbarProps> = ({ onToggleMobileMenu, onNavigate }) => {
   const { user, logout, switchRole } = useAuth();
-  const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const notifications = dbService.getNotifications(user?.role);
   const unreadCount = notifications.filter((n) => !n.is_read).length;
-
-  const handleRoleSelect = (role: UserRoleType) => {
-    switchRole(role);
-    setIsRoleDropdownOpen(false);
-  };
 
   const handleMarkAllRead = () => {
     dbService.markAllNotificationsAsRead();
@@ -74,85 +65,19 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleMobileMenu, onNavigate }
           <span>Portal PGB</span>
         </button>
 
-        {/* Quick Role Switcher for Evaluators / Administrators */}
-        <div className="relative">
-          <button
-            onClick={() => {
-              setIsRoleDropdownOpen(!isRoleDropdownOpen);
-              setIsNotifOpen(false);
-              setIsProfileOpen(false);
-            }}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition-colors"
-            title="Tukar Peranan Pengguna untuk Semakan"
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-            <span className="hidden md:inline">Peranan:</span>
-            <span className="text-blue-700 font-bold">
-              {user?.role === 'SUPER_ADMIN'
-                ? 'Super Admin'
-                : user?.role === 'ADMIN_ZON'
-                ? 'Admin Zon'
-                : 'Monitoring'}
-            </span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-          </button>
-
-          {isRoleDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-50 text-xs animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-3 py-2 border-b border-slate-100 text-[11px] font-semibold text-slate-500">
-                Uji Had Akses Sistem (Role Switcher)
-              </div>
-              <button
-                onClick={() => handleRoleSelect('SUPER_ADMIN')}
-                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-blue-50 transition-colors ${
-                  user?.role === 'SUPER_ADMIN' ? 'bg-blue-50/80 font-bold text-blue-700' : 'text-slate-700'
-                }`}
-              >
-                <div>
-                  <p className="font-semibold">Super Admin / Head Admin</p>
-                  <p className="text-[10px] text-slate-500">Akses penuh 6 zon & 85 sekolah</p>
-                </div>
-                {user?.role === 'SUPER_ADMIN' && <CheckCircle2 className="w-4 h-4 text-blue-600" />}
-              </button>
-              <button
-                onClick={() => handleRoleSelect('ADMIN_ZON')}
-                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-teal-50 transition-colors ${
-                  user?.role === 'ADMIN_ZON' ? 'bg-teal-50/80 font-bold text-teal-700' : 'text-slate-700'
-                }`}
-              >
-                <div>
-                  <p className="font-semibold">Admin Zon (Tenghilan & Mengkabong)</p>
-                  <p className="text-[10px] text-slate-500">Akses zon ditugaskan sahaja</p>
-                </div>
-                {user?.role === 'ADMIN_ZON' && <CheckCircle2 className="w-4 h-4 text-teal-600" />}
-              </button>
-              <button
-                onClick={() => handleRoleSelect('MONITORING_ADMIN')}
-                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                  user?.role === 'MONITORING_ADMIN' ? 'bg-slate-100 font-bold text-slate-800' : 'text-slate-700'
-                }`}
-              >
-                <div>
-                  <p className="font-semibold">Monitoring Admin (Read-Only)</p>
-                  <p className="text-[10px] text-slate-500">Hanya melihat laporan tanpa ubah suai</p>
-                </div>
-                {user?.role === 'MONITORING_ADMIN' && <CheckCircle2 className="w-4 h-4 text-slate-700" />}
-              </button>
-
-              <div className="pt-1 mt-1 border-t border-slate-100">
-                <button
-                  onClick={() => handleRoleSelect('PGB')}
-                  className="w-full text-left px-3 py-2 flex items-center justify-between hover:bg-emerald-50 transition-colors text-emerald-800 font-bold"
-                >
-                  <div>
-                    <p className="font-semibold text-emerald-700">Pengetua / Guru Besar (PGB)</p>
-                    <p className="text-[10px] text-emerald-600">Beralih terus ke Portal Pengguna PGB</p>
-                  </div>
-                  <ExternalLink className="w-4 h-4 text-emerald-600" />
-                </button>
-              </div>
-            </div>
-          )}
+        {/* Official Role Badge */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 border border-slate-200">
+          <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+          <span className="hidden md:inline text-slate-500 font-medium">Peranan:</span>
+          <span className="text-blue-700 font-bold">
+            {user?.role === 'SUPER_ADMIN'
+              ? 'Super Admin'
+              : user?.role === 'ADMIN_ZON'
+              ? 'Admin Zon'
+              : user?.role === 'PGB'
+              ? 'Pengetua / Guru Besar'
+              : 'Monitoring Admin'}
+          </span>
         </div>
 
         {/* Notifications Dropdown */}
@@ -160,7 +85,6 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleMobileMenu, onNavigate }
           <button
             onClick={() => {
               setIsNotifOpen(!isNotifOpen);
-              setIsRoleDropdownOpen(false);
               setIsProfileOpen(false);
             }}
             className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 relative transition-colors"
@@ -248,7 +172,6 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleMobileMenu, onNavigate }
           <button
             onClick={() => {
               setIsProfileOpen(!isProfileOpen);
-              setIsRoleDropdownOpen(false);
               setIsNotifOpen(false);
             }}
             className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"

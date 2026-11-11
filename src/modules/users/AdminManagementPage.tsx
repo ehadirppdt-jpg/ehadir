@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   ShieldAlert,
   Plus,
@@ -36,6 +36,12 @@ export const AdminManagementPage: React.FC = () => {
   const adminUsers = useMemo(() => {
     return users.filter((u) => u.role !== 'PGB');
   }, [users]);
+
+  useEffect(() => {
+    dbService.syncUsersFromSupabase().then((synced) => {
+      setUsers(synced);
+    });
+  }, []);
 
   const handleOpenModal = (admin?: UserProfile) => {
     if (admin) {

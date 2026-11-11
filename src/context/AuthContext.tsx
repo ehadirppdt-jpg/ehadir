@@ -52,7 +52,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (stored) {
         const parsed = JSON.parse(stored);
         const freshUsers = dbService.getUsers();
-        const matched = freshUsers.find((u) => u.id === parsed.id);
+        let matched = freshUsers.find(
+          (u) => u.id === parsed.id || u.email.toLowerCase() === parsed.email.toLowerCase()
+        );
+
+        if (!matched && parsed && parsed.status === 'ACTIVE') {
+          dbService.saveUser(parsed);
+          matched = parsed;
+        }
+
         if (matched && matched.status === 'ACTIVE') {
           setUser(matched);
           if (matched.role === 'PGB') {
@@ -79,8 +87,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const cleanEmail = email.trim().toLowerCase();
 
-    // If Supabase is configured and not in mock fallback mode, attempt live Supabase Auth
-    if (isSupabaseConfigured && import.meta.env.VITE_ENABLE_MOCK_FALLBACK === 'false' && password) {
+    // If Supabase is configured and password is provided, attempt live Supabase Auth
+    if (isSupabaseConfigured && password) {
       try {
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email: cleanEmail,
@@ -92,17 +100,88 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             .from('profiles')
             .select('*')
             .eq('id', authData.user.id)
-            .single();
+            .maybeSingle();
+
+          let userProfile: UserProfile;
 
           if (profile) {
-            setUser(profile as UserProfile);
-            if (profile.role === 'PGB') {
-              setPortalMode('USER');
+            userProfile = {
+              id: profile.id,
+              full_name: profile.full_name || 'Pentadbir',
+              ic_no: profile.ic_no || '',
+              position: profile.position || 'Pegawai Perkhidmatan Pendidikan',
+              email: profile.email || cleanEmail,
+              phone_number: profile.phone_number,
+              avatar_url: profile.avatar_url,
+              status: profile.status || 'ACTIVE',
+              role: (profile.role as UserRoleType) || 'SUPER_ADMIN',
+              assigned_zone_ids: profile.assigned_zone_ids,
+              assigned_school_id: profile.assigned_school_id,
+              school_name: profile.school_name,
+              created_at: profile.created_at || new Date().toISOString(),
+              updated_at: profile.updated_at || new Date().toISOString(),
+            };
+          } else {
+            // First time login for user entered manually into Supabase Authentication:
+            // Auto-provision Super Admin profile
+            userProfile = {
+              id: authData.user.id,
+              full_name:
+                (authData.user.user_metadata?.full_name as string) ||
+                cleanEmail.split('@')[0].toUpperCase() ||
+                'SUPER ADMIN PPD TUARAN',
+              ic_no: (authData.user.user_metadata?.ic_no as string) || '710412125587',
+              position:
+                (authData.user.user_metadata?.position as string) ||
+                'Pegawai Pendidikan Daerah / Head Admin',
+              email: authData.user.email || cleanEmail,
+              status: 'ACTIVE',
+              role: (authData.user.user_metadata?.role as UserRoleType) || 'SUPER_ADMIN',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+
+            try {
+              await supabase.from('profiles').upsert([userProfile]);
+            } catch (pErr) {
+              console.warn('Could not upsert profile into Supabase:', pErr);
             }
-            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(profile));
-            setIsLoading(false);
-            return { success: true };
           }
+
+          // Cache profile locally in dbService
+          dbService.saveUser(userProfile);
+
+          // Role check against target portal
+          const currentPortal = targetPortal || portalMode;
+          if (currentPortal === 'ADMIN' && userProfile.role === 'PGB') {
+            setIsLoading(false);
+            return {
+              success: false,
+              error: 'Akaun Pengetua / Guru Besar (PGB) perlu menggunakan Portal Pengguna e-HADIR TUARAN.',
+            };
+          }
+
+          setUser(userProfile);
+          if (userProfile.role === 'PGB') {
+            setPortalMode('USER');
+          } else {
+            setPortalMode('ADMIN');
+          }
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userProfile));
+
+          logAuditEvent({
+            actor_name: userProfile.full_name,
+            actor_role: userProfile.role,
+            actor_id: userProfile.id,
+            action: 'LOG_MASUK',
+            entity: 'AUTENTIKASI',
+            remarks: `Log masuk berjaya melalui akaun Supabase (${userProfile.email}) sebagai ${userProfile.role}.`,
+          });
+
+          setIsLoading(false);
+          return { success: true };
+        } else if (authError) {
+          console.warn('Supabase auth notice:', authError.message);
         }
       } catch (err) {
         console.warn('Supabase auth attempt returned:', err);
@@ -118,7 +197,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setIsLoading(false);
       return {
         success: false,
-        error: 'Emel atau ID Pengguna tidak sah. Sila semak semula kredensial anda.',
+        error:
+          'Emel atau kata laluan tidak sah. Sila pastikan akaun telah didaftarkan dalam Supabase atau dicipta oleh Super Admin.',
       };
     }
 

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Users,
   Plus,
@@ -46,6 +46,12 @@ export const UserManagementPage: React.FC = () => {
   const refreshUsers = () => {
     setUsers(dbService.getUsers());
   };
+
+  useEffect(() => {
+    dbService.syncUsersFromSupabase().then((synced) => {
+      setUsers(synced);
+    });
+  }, []);
 
   const filteredUsers = useMemo(() => {
     return users.filter((u) => {

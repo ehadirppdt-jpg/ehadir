@@ -15,6 +15,7 @@ import {
   DeviceRegistryItem,
 } from '@/types';
 import { logAuditEvent } from './audit';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 // ========================================================================
 // INITIAL SEED DATA
@@ -286,373 +287,15 @@ export const INITIAL_SCHOOLS: School[] = [
   },
 ];
 
-export const INITIAL_USERS: UserProfile[] = [
-  {
-    id: 'usr-super',
-    full_name: 'Haji Wan Mohd Sani bin Wan Jaafar',
-    ic_no: '710412125587',
-    position: 'Pegawai Pendidikan Daerah / Head Admin',
-    email: 'admin.super@ppdtuaran.edu.my',
-    phone_number: '019-8812345',
-    status: 'ACTIVE',
-    role: 'SUPER_ADMIN',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'usr-admin-tenghilan',
-    full_name: 'Ustaz Azman bin Harun',
-    ic_no: '780615125341',
-    position: 'Penolong Pegawai PPD (Sektor Pengurusan Sekolah)',
-    email: 'admin.tenghilan@ppdtuaran.edu.my',
-    phone_number: '013-8765432',
-    status: 'ACTIVE',
-    role: 'ADMIN_ZON',
-    assigned_zone_ids: ['zone-z01', 'zone-z02'], // Tenghilan & Mengkabong
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'usr-admin-kiulu',
-    full_name: 'Encik Roger Majalap',
-    ic_no: '760920126123',
-    position: 'Penolong Pegawai PPD (Sektor Perancangan)',
-    email: 'admin.kiulu@ppdtuaran.edu.my',
-    phone_number: '014-5566778',
-    status: 'ACTIVE',
-    role: 'ADMIN_ZON',
-    assigned_zone_ids: ['zone-z04', 'zone-z05'], // Kiulu & Nabalu
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'usr-admin-sulaman',
-    full_name: 'Puan Siti Rahmah binti Salleh',
-    ic_no: '820310125442',
-    position: 'Penolong Pegawai PPD (Sektor Pembelajaran)',
-    email: 'admin.sulaman@ppdtuaran.edu.my',
-    phone_number: '012-3456789',
-    status: 'ACTIVE',
-    role: 'ADMIN_ZON',
-    assigned_zone_ids: ['zone-z03'], // Sulaman
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'usr-admin-monitoring',
-    full_name: 'Encik Rosli bin Mansor',
-    ic_no: '831122125789',
-    position: 'Pegawai Pemantau Integriti PPD',
-    email: 'admin.monitoring@ppdtuaran.edu.my',
-    phone_number: '011-2345678',
-    status: 'ACTIVE',
-    role: 'MONITORING_ADMIN',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  // PGB Users (To verify that PGB accounts cannot log in to Admin Portal)
-  {
-    id: 'pgb-001',
-    full_name: 'En. Mohd Khairul bin Abdullah',
-    ic_no: '750214125541',
-    position: 'Guru Besar Cemerlang DG48',
-    email: 'khairul.abdullah@moe.gov.my',
-    phone_number: '019-8765432',
-    status: 'ACTIVE',
-    role: 'PGB',
-    assigned_school_id: 'sch-001',
-    school_name: 'SK PEKAN TUARAN',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'pgb-002',
-    full_name: 'Pn. Sarah binti Othman',
-    ic_no: '800823126652',
-    position: 'Pengetua DG52',
-    email: 'sarah.othman@moe.gov.my',
-    phone_number: '013-4567890',
-    status: 'ACTIVE',
-    role: 'PGB',
-    assigned_school_id: 'sch-002',
-    school_name: 'SMK BADIN',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'pgb-003',
-    full_name: 'En. Justine Jikunan',
-    ic_no: '770518125123',
-    position: 'Guru Besar DG44',
-    email: 'justine.jikunan@moe.gov.my',
-    phone_number: '014-8899001',
-    status: 'ACTIVE',
-    role: 'PGB',
-    assigned_school_id: 'sch-003',
-    school_name: 'SK TENGHILAN',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'pgb-004',
-    full_name: 'En. Richard bin Gampalid',
-    ic_no: '791104125789',
-    position: 'Guru Besar DG48',
-    email: 'richard.gampalid@moe.gov.my',
-    phone_number: '016-7788992',
-    status: 'ACTIVE',
-    role: 'PGB',
-    assigned_school_id: 'sch-005',
-    school_name: 'SK KIULU',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'pgb-005',
-    full_name: 'Pn. Marhaini binti Mokhtar',
-    ic_no: '810712125432',
-    position: 'Guru Besar DG44',
-    email: 'marhaini.mokhtar@moe.gov.my',
-    phone_number: '013-3344556',
-    status: 'ACTIVE',
-    role: 'PGB',
-    assigned_school_id: 'sch-006',
-    school_name: 'SK PEKAN NABALU',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'pgb-006',
-    full_name: 'En. Stephen Majin',
-    ic_no: '740925126001',
-    position: 'Guru Besar Cemerlang DG48',
-    email: 'stephen.majin@moe.gov.my',
-    phone_number: '019-2233445',
-    status: 'ACTIVE',
-    role: 'PGB',
-    assigned_school_id: 'sch-007',
-    school_name: 'SK PEKAN TAMPARULI',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-];
+export const INITIAL_USERS: UserProfile[] = [];
 
-export const INITIAL_DEVICE_REGISTRY: DeviceRegistryItem[] = [
-  {
-    id: 'dev-001',
-    user_id: 'pgb-001',
-    device_name: 'Samsung Galaxy S24 Ultra',
-    device_model: 'SM-S928B',
-    os_name: 'Android 14 (One UI 6.1)',
-    device_uuid: 'a8f4c219-45d2-4e89-9a10-2f8832a87c01',
-    is_primary: true,
-    status: 'ACTIVE',
-    registered_at: '2026-01-15T09:00:00Z',
-    last_used_at: '2026-11-11T07:22:10Z',
-  },
-  {
-    id: 'dev-002',
-    user_id: 'pgb-002',
-    device_name: 'Apple iPhone 15 Pro',
-    device_model: 'A3102',
-    os_name: 'iOS 17.5.1',
-    device_uuid: 'b9d1e432-88f1-4321-9988-7e6655443322',
-    is_primary: true,
-    status: 'ACTIVE',
-    registered_at: '2026-02-01T10:30:00Z',
-    last_used_at: '2026-11-11T07:48:30Z',
-  },
-  {
-    id: 'dev-003',
-    user_id: 'pgb-003',
-    device_name: 'Xiaomi 14',
-    device_model: '23127PN0CG',
-    os_name: 'Android 14 (HyperOS)',
-    device_uuid: 'c7e8a912-3344-5566-7788-99aabbccdde1',
-    is_primary: true,
-    status: 'ACTIVE',
-    registered_at: '2026-03-01T08:15:00Z',
-    last_used_at: '2026-11-11T07:15:00Z',
-  },
-];
+export const INITIAL_DEVICE_REGISTRY: DeviceRegistryItem[] = [];
 
-export const INITIAL_APPROVER_ASSIGNMENTS: MonthlyApproverAssignment[] = [
-  {
-    id: 'app-001',
-    month: 11,
-    year: 2026,
-    school_id: 'sch-001',
-    school_name: 'SK PEKAN TUARAN',
-    school_code: 'XBA4001',
-    zone_id: 'zone-z03',
-    zone_name: 'ZON SULAMAN',
-    assigned_admin_id: 'usr-admin-sulaman',
-    assigned_admin_name: 'Puan Siti Rahmah binti Salleh',
-    assigned_admin_email: 'admin.sulaman@ppdtuaran.edu.my',
-    assigned_by: 'usr-super',
-    assigned_at: '2026-11-01T08:00:00Z',
-    is_primary: true,
-    status: 'ACTIVE',
-    notes: 'Penetapan rasmi Bulan November 2026',
-  },
-  {
-    id: 'app-002',
-    month: 11,
-    year: 2026,
-    school_id: 'sch-002',
-    school_name: 'SMK BADIN',
-    school_code: 'XEA4040',
-    zone_id: 'zone-z02',
-    zone_name: 'ZON MENGKABONG',
-    assigned_admin_id: 'usr-admin-tenghilan',
-    assigned_admin_name: 'Ustaz Azman bin Harun',
-    assigned_admin_email: 'admin.tenghilan@ppdtuaran.edu.my',
-    assigned_by: 'usr-super',
-    assigned_at: '2026-11-01T08:00:00Z',
-    is_primary: true,
-    status: 'ACTIVE',
-    notes: 'Penetapan rasmi Bulan November 2026',
-  },
-  {
-    id: 'app-003',
-    month: 11,
-    year: 2026,
-    school_id: 'sch-003',
-    school_name: 'SK TENGHILAN',
-    school_code: 'XBA4015',
-    zone_id: 'zone-z01',
-    zone_name: 'ZON TENGHILAN',
-    assigned_admin_id: 'usr-admin-tenghilan',
-    assigned_admin_name: 'Ustaz Azman bin Harun',
-    assigned_admin_email: 'admin.tenghilan@ppdtuaran.edu.my',
-    assigned_by: 'usr-super',
-    assigned_at: '2026-11-01T08:00:00Z',
-    is_primary: true,
-    status: 'ACTIVE',
-  },
-  {
-    id: 'app-004',
-    month: 11,
-    year: 2026,
-    school_id: 'sch-005',
-    school_name: 'SK KIULU',
-    school_code: 'XBA4030',
-    zone_id: 'zone-z04',
-    zone_name: 'ZON KIULU',
-    assigned_admin_id: 'usr-admin-kiulu',
-    assigned_admin_name: 'Encik Roger Majalap',
-    assigned_admin_email: 'admin.kiulu@ppdtuaran.edu.my',
-    assigned_by: 'usr-super',
-    assigned_at: '2026-11-01T08:00:00Z',
-    is_primary: true,
-    status: 'ACTIVE',
-  },
-];
+export const INITIAL_APPROVER_ASSIGNMENTS: MonthlyApproverAssignment[] = [];
 
-export const INITIAL_MONTHLY_RECORDS: MonthlyAttendanceRecord[] = [
-  {
-    id: 'm-att-001',
-    user_id: 'pgb-001',
-    pgb_name: 'En. Mohd Khairul bin Abdullah',
-    school_id: 'sch-001',
-    school_name: 'SK PEKAN TUARAN',
-    school_code: 'XBA4001',
-    zone_id: 'zone-z03',
-    zone_name: 'ZON SULAMAN',
-    month: 10,
-    year: 2026,
-    total_working_days: 22,
-    present_days: 22,
-    late_days: 1,
-    incomplete_days: 0,
-    justified_days: 1,
-    total_hours_rendered: 198.5,
-    status: 'MENUNGGU_SEMAKAN',
-    assigned_approver_id: 'usr-admin-sulaman',
-    assigned_approver_name: 'Puan Siti Rahmah binti Salleh',
-    generated_at: '2026-11-01T00:05:00Z',
-    submitted_at: '2026-11-02T09:15:00Z',
-  },
-  {
-    id: 'm-att-002',
-    user_id: 'pgb-002',
-    pgb_name: 'Pn. Sarah binti Othman',
-    school_id: 'sch-002',
-    school_name: 'SMK BADIN',
-    school_code: 'XEA4040',
-    zone_id: 'zone-z02',
-    zone_name: 'ZON MENGKABONG',
-    month: 10,
-    year: 2026,
-    total_working_days: 22,
-    present_days: 21,
-    late_days: 2,
-    incomplete_days: 1,
-    justified_days: 2,
-    total_hours_rendered: 191.0,
-    status: 'DALAM_SEMAKAN',
-    assigned_approver_id: 'usr-admin-tenghilan',
-    assigned_approver_name: 'Ustaz Azman bin Harun',
-    generated_at: '2026-11-01T00:05:00Z',
-    submitted_at: '2026-11-02T10:30:00Z',
-  },
-  {
-    id: 'm-att-003',
-    user_id: 'pgb-003',
-    pgb_name: 'En. Justine Jikunan',
-    school_id: 'sch-003',
-    school_name: 'SK TENGHILAN',
-    school_code: 'XBA4015',
-    zone_id: 'zone-z01',
-    zone_name: 'ZON TENGHILAN',
-    month: 10,
-    year: 2026,
-    total_working_days: 22,
-    present_days: 22,
-    late_days: 0,
-    incomplete_days: 0,
-    justified_days: 0,
-    total_hours_rendered: 202.0,
-    status: 'DISAHKAN',
-    assigned_approver_id: 'usr-admin-tenghilan',
-    assigned_approver_name: 'Ustaz Azman bin Harun',
-    generated_at: '2026-11-01T00:05:00Z',
-    submitted_at: '2026-11-01T14:20:00Z',
-  },
-];
+export const INITIAL_MONTHLY_RECORDS: MonthlyAttendanceRecord[] = [];
 
-export const INITIAL_NOTIFICATIONS: AppNotification[] = [
-  {
-    id: 'notif-001',
-    recipient_role: 'SUPER_ADMIN',
-    title: 'Penetapan Pengesah Belum Selesai',
-    message: 'Terdapat 4 buah sekolah di Zon Nabalu & Tamparuli belum mempunyai Pegawai Pengesah bagi Bulan November 2026.',
-    category: 'UNASSIGNED_SCHOOL',
-    link: '/admin/approver-assignments',
-    is_read: false,
-    created_at: '2026-11-11T08:30:00Z',
-  },
-  {
-    id: 'notif-002',
-    recipient_role: 'ADMIN_ZON',
-    title: 'Penyerahan Kehadiran Bulanan Baharu',
-    message: 'Pengetua SMK Badin telah menghantar rekod kehadiran Bulan Oktober 2026 untuk semakan dan pengesahan.',
-    category: 'MONTHLY_SUBMISSION',
-    link: '/admin/monthly-verification',
-    is_read: false,
-    created_at: '2026-11-10T11:20:00Z',
-  },
-  {
-    id: 'notif-003',
-    recipient_role: 'SUPER_ADMIN',
-    title: 'Pendaftaran Wajah Biometrik Baharu',
-    message: 'Guru Besar SK Kiulu telah berjaya menyelesaikan pendaftaran imbasan wajah biometrik rasmi.',
-    category: 'FACE_ENROLMENT',
-    link: '/admin/users',
-    is_read: false,
-    created_at: '2026-11-09T14:45:00Z',
-  },
-];
+export const INITIAL_NOTIFICATIONS: AppNotification[] = [];
 
 export const INITIAL_WORK_SCHEDULE: WorkSchedule = {
   id: 'ws-001',
@@ -703,55 +346,7 @@ export const INITIAL_HOLIDAYS: HolidayCalendarItem[] = [
   },
 ];
 
-export const INITIAL_JUSTIFICATIONS: Justification[] = [
-  {
-    id: 'just-seed-001',
-    attendance_record_id: 'att-seed-pgb001',
-    user_id: 'pgb-001',
-    user_name: 'Pn. Sarah Othman',
-    school_name: 'SK Pekan Tuaran',
-    date: '2026-11-05',
-    reason_category: 'TUGASAN_RASMI',
-    description: 'Menghadiri Mesyuarat Pengetua dan Guru Besar Peringkat Daerah Tuaran di Pejabat Pendidikan Daerah Tuaran. Tiada perakam kehadiran di PPD pada tarikh tersebut.',
-    status: 'DILULUSKAN',
-    submitted_at: '2026-11-06T09:00:00Z',
-    reviewed_by: 'admin-zon-001',
-    reviewed_by_name: 'Encik Ahmad Zulkifli',
-    reviewed_at: '2026-11-07T10:30:00Z',
-    review_remarks: 'Justifikasi diterima. Surat tugasan disahkan.',
-    documents: [{ name: 'surat_mesyuarat_nov2026.pdf', url: 'https://storage.ppdtuaran.edu.my/justifications/surat_mesyuarat_nov2026.pdf', size: 'PDF' }],
-  },
-  {
-    id: 'just-seed-002',
-    attendance_record_id: 'att-seed-pgb002',
-    user_id: 'pgb-002',
-    user_name: 'En. Razif Hamdan',
-    school_name: 'SMK Pekan Tuaran',
-    date: '2026-11-03',
-    reason_category: 'SAKIT',
-    description: 'Demam panas dan tidak sihat. Telah mendapatkan rawatan di Klinik Kesihatan Tuaran dan mendapat MC untuk satu hari.',
-    status: 'MENUNGGU_SEMAKAN',
-    submitted_at: '2026-11-04T08:15:00Z',
-    documents: [{ name: 'mc_klinik_kesihatan_tuaran.pdf', url: 'https://storage.ppdtuaran.edu.my/justifications/mc_klinik_kesihatan_tuaran.pdf', size: 'PDF' }],
-  },
-  {
-    id: 'just-seed-003',
-    attendance_record_id: 'att-seed-pgb003',
-    user_id: 'pgb-003',
-    user_name: 'Pn. Siti Radziah',
-    school_name: 'SK Menggatal',
-    date: '2026-10-28',
-    reason_category: 'KURSUS_LATIHAN',
-    description: 'Menghadiri Kursus Transformasi Kepimpinan Sekolah (LADAP) anjuran Jabatan Pendidikan Negeri Sabah selama dua hari.',
-    status: 'DITOLAK',
-    submitted_at: '2026-10-30T07:45:00Z',
-    reviewed_by: 'admin-zon-001',
-    reviewed_by_name: 'Encik Ahmad Zulkifli',
-    reviewed_at: '2026-11-02T14:00:00Z',
-    review_remarks: 'Sila kemukakan semula dengan surat kebenaran rasmi dari JPN Sabah.',
-    documents: [],
-  },
-];
+export const INITIAL_JUSTIFICATIONS: Justification[] = [];
 
 // ========================================================================
 // STORAGE HELPER
@@ -759,6 +354,20 @@ export const INITIAL_JUSTIFICATIONS: Justification[] = [
 
 function loadFromStorage<T>(key: string, defaultData: T): T {
   try {
+    // Purge legacy demo seed data from browser localStorage on first run
+    const purgeFlag = 'ehadir_purge_v4_clean';
+    if (!localStorage.getItem(purgeFlag)) {
+      localStorage.removeItem('ehadir_users');
+      localStorage.removeItem('ehadir_attendance_records');
+      localStorage.removeItem('ehadir_justifications');
+      localStorage.removeItem('ehadir_monthly_records');
+      localStorage.removeItem('ehadir_approver_assignments');
+      localStorage.removeItem('ehadir_notifications');
+      localStorage.removeItem('ehadir_device_registry');
+      localStorage.removeItem('ehadir_tuaran_auth_session');
+      localStorage.setItem(purgeFlag, 'true');
+    }
+
     const item = localStorage.getItem(`ehadir_${key}`);
     return item ? JSON.parse(item) : defaultData;
   } catch (e) {
@@ -1074,21 +683,108 @@ export const dbService = {
     return loadFromStorage<UserProfile[]>('users', INITIAL_USERS);
   },
 
+  saveUser(userToSave: UserProfile): void {
+    const users = this.getUsers();
+    const existingIndex = users.findIndex(
+      (u) => u.id === userToSave.id || u.email.toLowerCase() === userToSave.email.toLowerCase()
+    );
+    if (existingIndex >= 0) {
+      users[existingIndex] = { ...users[existingIndex], ...userToSave };
+    } else {
+      users.unshift(userToSave);
+    }
+    saveToStorage('users', users);
+  },
+
+  async syncUsersFromSupabase(): Promise<UserProfile[]> {
+    if (!isSupabaseConfigured) return this.getUsers();
+    try {
+      const { data, error } = await supabase.from('profiles').select('*');
+      if (data && !error && data.length > 0) {
+        const current = this.getUsers();
+        const mergedMap = new Map<string, UserProfile>();
+        current.forEach((u) => mergedMap.set(u.id, u));
+
+        data.forEach((p: any) => {
+          mergedMap.set(p.id, {
+            id: p.id,
+            full_name: p.full_name || 'Pentadbir',
+            ic_no: p.ic_no || '',
+            position: p.position || 'Pegawai Perkhidmatan Pendidikan',
+            email: p.email,
+            phone_number: p.phone_number || undefined,
+            avatar_url: p.avatar_url || undefined,
+            status: p.status || 'ACTIVE',
+            role: p.role || 'PGB',
+            assigned_zone_ids: p.assigned_zone_ids || undefined,
+            assigned_school_id: p.assigned_school_id || undefined,
+            school_name: p.school_name || undefined,
+            created_at: p.created_at,
+            updated_at: p.updated_at,
+          });
+        });
+
+        const mergedList = Array.from(mergedMap.values());
+        saveToStorage('users', mergedList);
+        return mergedList;
+      }
+    } catch (err) {
+      console.warn('Could not sync users from Supabase:', err);
+    }
+    return this.getUsers();
+  },
+
   createUser(data: Omit<UserProfile, 'id' | 'created_at' | 'updated_at'>, actor: UserProfile): UserProfile {
     const users = this.getUsers();
     if (users.some((u) => u.email.toLowerCase() === data.email.toLowerCase())) {
       throw new Error(`Emel ${data.email} sudah didaftarkan!`);
     }
 
+    const generatedId =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `usr-${Date.now().toString(36)}`;
+
     const newUser: UserProfile = {
       ...data,
-      id: `usr-${Date.now().toString(36)}`,
+      id: generatedId,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
     const updated = [newUser, ...users];
     saveToStorage('users', updated);
+
+    // Sync to Supabase if configured
+    if (isSupabaseConfigured) {
+      Promise.resolve(
+        supabase.from('profiles').upsert([
+          {
+            id: newUser.id,
+            full_name: newUser.full_name,
+            ic_no: newUser.ic_no,
+            position: newUser.position,
+            email: newUser.email,
+            phone_number: newUser.phone_number || null,
+            status: newUser.status,
+            role: newUser.role,
+            assigned_school_id: newUser.assigned_school_id || null,
+            school_name: newUser.school_name || null,
+            assigned_zone_ids: newUser.assigned_zone_ids || null,
+            created_at: newUser.created_at,
+            updated_at: newUser.updated_at,
+          },
+        ])
+      )
+        .then((res: any) => {
+          if (res?.error) {
+            console.warn('Supabase profile upsert notice:', res.error.message);
+          }
+        })
+        .catch((err: any) => {
+          console.warn('Supabase upsert error:', err);
+        });
+    }
 
     logAuditEvent({
       actor_name: actor.full_name,
@@ -1118,6 +814,32 @@ export const dbService = {
 
     users[index] = updatedUser;
     saveToStorage('users', users);
+
+    // Sync updates to Supabase if configured
+    if (isSupabaseConfigured) {
+      Promise.resolve(
+        supabase
+          .from('profiles')
+          .update({
+            full_name: updatedUser.full_name,
+            ic_no: updatedUser.ic_no,
+            position: updatedUser.position,
+            email: updatedUser.email,
+            phone_number: updatedUser.phone_number || null,
+            status: updatedUser.status,
+            role: updatedUser.role,
+            assigned_school_id: updatedUser.assigned_school_id || null,
+            school_name: updatedUser.school_name || null,
+            assigned_zone_ids: updatedUser.assigned_zone_ids || null,
+            updated_at: updatedUser.updated_at,
+          })
+          .eq('id', id)
+      )
+        .then((res: any) => {
+          if (res?.error) console.warn('Supabase update notice:', res.error.message);
+        })
+        .catch((err: any) => console.warn('Supabase update error:', err));
+    }
 
     logAuditEvent({
       actor_name: actor.full_name,
@@ -1224,103 +946,7 @@ export const dbService = {
     school_id?: string;
     user_id?: string;
   }): AttendanceRecord[] {
-    const records = loadFromStorage<AttendanceRecord[]>('attendance_records', [
-      // ── Today's records for Admin Portal Dashboard ──────────────────────
-      {
-        id: 'att-001',
-        user_id: 'pgb-001',
-        pgb_name: 'En. Mohd Khairul bin Abdullah',
-        school_id: 'sch-001',
-        school_name: 'SK PEKAN TUARAN',
-        zone_id: 'zone-z03',
-        zone_name: 'ZON SULAMAN',
-        date: '2026-11-11',
-        clock_in_time: '2026-11-11T07:22:10Z',
-        clock_out_time: '2026-11-11T16:35:40Z',
-        total_working_minutes: 553,
-        late_minutes: 0,
-        status: 'LENGKAP',
-        face_verified: true,
-        gps_validated: true,
-        clock_in_location: 'SK Pekan Tuaran (Dalam Radius 24m)',
-        clock_out_location: 'SK Pekan Tuaran (Dalam Radius 18m)',
-        location_name: 'SK Pekan Tuaran',
-        work_duration_minutes: 553,
-        is_verified: true,
-        created_at: '2026-11-11T07:22:10Z',
-      },
-      {
-        id: 'att-002',
-        user_id: 'pgb-002',
-        pgb_name: 'Pn. Sarah binti Othman',
-        school_id: 'sch-002',
-        school_name: 'SMK BADIN',
-        zone_id: 'zone-z02',
-        zone_name: 'ZON MENGKABONG',
-        date: '2026-11-11',
-        clock_in_time: '2026-11-11T07:48:30Z',
-        clock_out_time: '2026-11-11T16:50:00Z',
-        total_working_minutes: 541,
-        late_minutes: 0,
-        status: 'LENGKAP',
-        face_verified: true,
-        gps_validated: true,
-        clock_in_location: 'SMK Badin (Dalam Radius 45m)',
-        clock_out_location: 'SMK Badin (Dalam Radius 32m)',
-        location_name: 'SMK Badin',
-        work_duration_minutes: 541,
-        has_justification: false,
-        is_verified: false,
-        created_at: '2026-11-11T07:48:30Z',
-      },
-      {
-        id: 'att-003',
-        user_id: 'pgb-003',
-        pgb_name: 'En. Justine Jikunan',
-        school_id: 'sch-003',
-        school_name: 'SK TENGHILAN',
-        zone_id: 'zone-z01',
-        zone_name: 'ZON TENGHILAN',
-        date: '2026-11-11',
-        clock_in_time: '2026-11-11T07:15:00Z',
-        total_working_minutes: 420,
-        late_minutes: 0,
-        status: 'LENGKAP',
-        face_verified: true,
-        gps_validated: true,
-        clock_in_location: 'SK Tenghilan (Dalam Radius 30m)',
-        location_name: 'SK Tenghilan',
-        work_duration_minutes: 420,
-        is_verified: false,
-        created_at: '2026-11-11T07:15:00Z',
-      },
-      {
-        id: 'att-004',
-        user_id: 'pgb-005',
-        pgb_name: 'En. Richard bin Gampalid',
-        school_id: 'sch-005',
-        school_name: 'SK KIULU',
-        zone_id: 'zone-z04',
-        zone_name: 'ZON KIULU',
-        date: '2026-11-11',
-        total_working_minutes: 0,
-        late_minutes: 0,
-        status: 'TIDAK_LENGKAP',
-        face_verified: false,
-        gps_validated: false,
-        has_justification: true,
-        justification_status: 'MENUNGGU_SEMAKAN',
-        is_verified: false,
-        created_at: '2026-11-11T08:00:00Z',
-      },
-      // ── November 2026 — PGB Sarah (pgb-002) full month sample ───────────
-      { id: 'att-s-1101', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-03', clock_in_time: '2026-11-03T07:30:00Z', clock_out_time: '2026-11-03T16:40:00Z', total_working_minutes: 550, late_minutes: 0, status: 'LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'SMK Badin', location_name: 'SMK Badin', work_duration_minutes: 550, is_verified: true, created_at: '2026-11-03T07:30:00Z' },
-      { id: 'att-s-1102', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-04', clock_in_time: '2026-11-04T07:45:00Z', clock_out_time: '2026-11-04T16:48:00Z', total_working_minutes: 543, late_minutes: 0, status: 'LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'SMK Badin', location_name: 'SMK Badin', work_duration_minutes: 543, is_verified: true, created_at: '2026-11-04T07:45:00Z' },
-      { id: 'att-s-1103', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-05', clock_in_time: '2026-11-05T08:00:00Z', clock_out_time: '2026-11-05T15:50:00Z', total_working_minutes: 470, late_minutes: 0, status: 'TIDAK_LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'PPD Tuaran', location_name: 'Pejabat PPD Tuaran', work_duration_minutes: 470, shortfall_minutes: 70, has_justification: true, justification_status: 'DILULUSKAN', is_verified: false, created_at: '2026-11-05T08:00:00Z' },
-      { id: 'att-s-1104', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-06', clock_in_time: '2026-11-06T07:20:00Z', clock_out_time: '2026-11-06T16:30:00Z', total_working_minutes: 550, late_minutes: 0, status: 'LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'SMK Badin', location_name: 'SMK Badin', work_duration_minutes: 550, is_verified: true, created_at: '2026-11-06T07:20:00Z' },
-      { id: 'att-s-1105', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-07', clock_in_time: '2026-11-07T07:35:00Z', clock_out_time: '2026-11-07T16:45:00Z', total_working_minutes: 550, late_minutes: 0, status: 'LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'SMK Badin', location_name: 'SMK Badin', work_duration_minutes: 550, is_verified: true, created_at: '2026-11-07T07:35:00Z' },
-      { id: 'att-s-1106', user_id: 'pgb-002', pgb_name: 'Pn. Sarah binti Othman', school_id: 'sch-002', school_name: 'SMK BADIN', zone_id: 'zone-z02', zone_name: 'ZON MENGKABONG', date: '2026-11-10', clock_in_time: '2026-11-10T07:50:00Z', clock_out_time: '2026-11-10T17:00:00Z', total_working_minutes: 550, late_minutes: 0, status: 'LENGKAP', face_verified: true, gps_validated: true, clock_in_location: 'SMK Badin', location_name: 'SMK Badin', work_duration_minutes: 550, is_verified: false, created_at: '2026-11-10T07:50:00Z' },
-    ]);
+    const records = loadFromStorage<AttendanceRecord[]>('attendance_records', []);
 
     if (!filter) return records;
 

@@ -9,6 +9,21 @@ export const PPD_TUARAN_OFFICE = {
   radius_meters: 150,
 };
 
+export function getPpdTuaranOfficeLocation() {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    try {
+      const stored = window.localStorage.getItem('ppd_office_location');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.latitude && parsed.longitude && parsed.radius_meters) {
+          return parsed;
+        }
+      }
+    } catch (_) {}
+  }
+  return PPD_TUARAN_OFFICE;
+}
+
 // Configurable OpenStreetMap Raster Tile URL and Attribution
 export const OSM_TILE_URL =
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_OSM_TILE_URL) ||

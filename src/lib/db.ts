@@ -11,6 +11,7 @@ import {
   HolidayCalendarItem,
   DashboardStats,
   UserRoleType,
+  PpdOfficeLocation,
 } from '@/types';
 import { logAuditEvent } from './audit';
 
@@ -1352,6 +1353,41 @@ export const dbService = {
       pendingMonthlyVerificationCount: monthlyRecords.filter((m) => m.status === 'MENUNGGU_SEMAKAN' || m.status === 'DALAM_SEMAKAN').length,
       unassignedApproverCount: unassignedCount,
     };
+  },
+
+  getPpdOfficeLocation(): PpdOfficeLocation {
+    return loadFromStorage<PpdOfficeLocation>('ppd_office_location', {
+      id: 'loc-ppd-hq',
+      name: 'Pejabat Pendidikan Daerah Tuaran (PPD Tuaran)',
+      address: 'Peti Surat 590, 89208 Tuaran, Sabah',
+      latitude: 6.1341200,
+      longitude: 116.2305400,
+      radius_meters: 150,
+      effective_date: '2026-01-01',
+      updated_at: new Date().toISOString(),
+    });
+  },
+
+  updatePpdOfficeLocation(updates: Partial<PpdOfficeLocation>, actor: UserProfile): PpdOfficeLocation {
+    const current = this.getPpdOfficeLocation();
+    const updated: PpdOfficeLocation = {
+      ...current,
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+    saveToStorage('ppd_office_location', updated);
+    logAuditEvent({
+      actor_name: actor.full_name,
+      actor_role: actor.role,
+      actor_id: actor.id,
+      action: 'KEMASKINI_GEOFENCE_PPD',
+      entity: 'TETAPAN_GEOFENCE',
+      record_id: 'loc-ppd-hq',
+      old_values: current,
+      new_values: updated,
+      remarks: `Perimeter Geofence PPD Tuaran dikemaskini: Lat=${updated.latitude.toFixed(6)}, Long=${updated.longitude.toFixed(6)}, Radius=${updated.radius_meters}m`,
+    });
+    return updated;
   },
 };
 

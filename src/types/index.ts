@@ -93,6 +93,17 @@ export interface AttendanceLocation {
   created_at: string;
 }
 
+export interface PpdOfficeLocation {
+  id: string;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  radius_meters: number;
+  effective_date?: string;
+  updated_at?: string;
+}
+
 export interface AttendanceRecord {
   id: string;
   user_id: string;

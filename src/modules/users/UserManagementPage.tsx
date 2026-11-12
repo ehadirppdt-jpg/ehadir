@@ -12,7 +12,6 @@ import {
   FileSpreadsheet,
   FileText,
   School,
-  Lock,
   Trash2,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
@@ -119,12 +118,18 @@ export const UserManagementPage: React.FC = () => {
     }
   };
 
-  const handleSave = (data: Partial<UserProfile>) => {
+  const handleSave = (data: Partial<UserProfile> & { newPassword?: string }) => {
     if (!user) return;
     try {
       if (editingUser) {
         dbService.updateUser(editingUser.id, data, user);
         showToast(`Profil ${data.full_name} berjaya dikemaskini.`, 'success');
+        if (data.newPassword) {
+          showToast(
+            `Nota: Untuk tukar kata laluan, gunakan fungsi "Tetapan Semula Kata Laluan" di Supabase Dashboard atau hantar pautan semula melalui butang KeyRound.`,
+            'info'
+          );
+        }
       } else {
         dbService.createUser(
           {
@@ -331,14 +336,6 @@ export const UserManagementPage: React.FC = () => {
                             title="Kemaskini Profil Pengguna"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-
-                          <button
-                            onClick={() => handleToggleStatus(u)}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-amber-600 hover:bg-amber-50 transition-colors"
-                            title={u.status === 'ACTIVE' ? 'Nyahaktifkan Akaun' : 'Aktifkan Akaun'}
-                          >
-                            <Lock className="w-3.5 h-3.5" />
                           </button>
 
                           <button

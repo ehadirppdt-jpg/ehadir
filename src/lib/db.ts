@@ -167,11 +167,12 @@ export const INITIAL_JUSTIFICATIONS: Justification[] = [];
 function loadFromStorage<T>(key: string, defaultData: T): T {
   try {
     // Purge legacy demo seed data from browser localStorage on first run
-    // v9: Full reset - clear all operational data, keep Super Admin only
-    const purgeFlag = 'ehadir_purge_v9_reset_all';
+    // v10: Clear attendance records that may have fake 545-minute duration from old bug
+    const purgeFlag = 'ehadir_purge_v10_fix_duration';
     if (!localStorage.getItem(purgeFlag)) {
       // Remove all old purge flags too so this always runs fresh
       localStorage.removeItem('ehadir_purge_v8_purge_probe');
+      localStorage.removeItem('ehadir_purge_v9_reset_all');
 
       const rawUsers = localStorage.getItem('ehadir_users');
       if (rawUsers) {

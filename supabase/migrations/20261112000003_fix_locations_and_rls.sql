@@ -19,15 +19,21 @@ TO anon, authenticated
 USING (true)
 WITH CHECK (true);
 
--- 2. Pastikan unik untuk type = 'PPD' supaya upsert tidak ralat
--- Bersihkan duplikasi jika ada
-DELETE FROM public.attendance_locations a
-USING public.attendance_locations b
-WHERE a.id > b.id 
-  AND a.type = 'PPD' 
-  AND b.type = 'PPD';
+-- 2. Bersihkan rekod duplikasi type = 'PPD' (simpan 1 rekod yang terkini sahaja)
+DELETE FROM public.attendance_locations
+WHERE id IN (
+  SELECT id FROM (
+    SELECT id, ROW_NUMBER() OVER (
+      PARTITION BY type 
+      ORDER BY updated_at DESC NULLS LAST, created_at DESC NULLS LAST
+    ) as rn
+    FROM public.attendance_locations
+    WHERE type = 'PPD'
+  ) sub
+  WHERE sub.rn > 1
+);
 
--- Tambah indeks unik bagi type PPD
+-- Tambah indeks unik bagi type PPD supaya tidak bertindih lagi
 CREATE UNIQUE INDEX IF NOT EXISTS idx_attendance_locations_type_ppd 
 ON public.attendance_locations (type) 
 WHERE type = 'PPD';
@@ -89,3 +95,4 @@ BEGIN
     RETURN public.get_current_user_role() = 'SUPER_ADMIN';
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+

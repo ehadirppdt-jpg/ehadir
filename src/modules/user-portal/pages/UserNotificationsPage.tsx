@@ -19,52 +19,24 @@ interface UserNotificationsPageProps {
 
 export const UserNotificationsPage: React.FC<UserNotificationsPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState([
-    {
-      id: 'notif-1',
-      title: 'Selamat Datang ke e-HADIR TUARAN (Portal PGB)',
-      message:
-        'Sistem kehadiran digital rasmi PPD Tuaran telah aktif. Pastikan peranti anda disahkan dan cukup 9 jam bertugas setiap hari.',
-      timestamp: '2026-11-11T07:30:00Z',
-      type: 'INFO',
-      isRead: false,
-      link: '/user/dashboard',
-    },
-    {
-      id: 'notif-2',
-      title: 'Laporan Bulanan Telah Dijana Secara Automatik',
-      message:
-        'Penyata kehadiran bagi bulan Oktober 2026 telah berjaya dijana dan dihantar kepada Pegawai Pengesah Admin Zon anda.',
-      timestamp: '2026-11-01T08:00:00Z',
-      type: 'SUCCESS',
-      isRead: true,
-      link: '/user/monthly-report',
-    },
-    {
-      id: 'notif-3',
-      title: 'Peringatan: Lengkapkan Justifikasi Kehadiran',
-      message:
-        'Terdapat rekod kehadiran pada 28 Oktober 2026 yang merekodkan kekurangan waktu bekerja. Sila kemukakan penjelasan rasmi.',
-      timestamp: '2026-10-29T10:15:00Z',
-      type: 'WARNING',
-      isRead: true,
-      link: '/user/justifications',
-    },
-    {
-      id: 'notif-4',
-      title: 'Pendaftaran Biometrik Wajah Sah',
-      message:
-        'Profil biometrik imbasan wajah anda telah disahkan aktif oleh pentadbir sistem PPD Tuaran.',
-      timestamp: '2026-10-15T09:00:00Z',
-      type: 'SUCCESS',
-      isRead: true,
-      link: '/user/profile',
-    },
-  ]);
+  const [notifications, setNotifications] = useState<any[]>(() => {
+    if (!user) return [];
+    const appNotifs = dbService.getNotifications(user.role, user.id);
+    return appNotifs.map((n) => ({
+      id: n.id,
+      title: n.title,
+      message: n.message,
+      timestamp: n.created_at,
+      type: n.category === 'JUSTIFICATION' || n.category === 'GEOFENCE_ALERT' ? 'WARNING' : 'INFO',
+      isRead: n.is_read,
+      link: n.link || '/user/dashboard',
+    }));
+  });
 
   if (!user) return null;
 
   const handleMarkAllRead = () => {
+    dbService.markAllNotificationsAsRead();
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   };
 
@@ -101,7 +73,14 @@ export const UserNotificationsPage: React.FC<UserNotificationsPageProps> = ({ on
 
       {/* Notifications List */}
       <div className="space-y-3">
-        {notifications.map((item) => (
+        {notifications.length === 0 ? (
+          <div className="p-10 text-center bg-[#0b1322] rounded-2xl border border-slate-800 text-slate-400">
+            <Bell className="w-8 h-8 text-slate-600 mx-auto mb-2 opacity-50" />
+            <h4 className="text-sm font-bold text-slate-300">Tiada Notifikasi Baharu</h4>
+            <p className="text-xs text-slate-500 mt-1">Anda tidak mempunyai sebarang makluman tertunggak.</p>
+          </div>
+        ) : (
+          notifications.map((item) => (
           <div
             key={item.id}
             onClick={() => handleNotificationClick(item)}
@@ -154,7 +133,8 @@ export const UserNotificationsPage: React.FC<UserNotificationsPageProps> = ({ on
 
             <ChevronRight className="w-4 h-4 text-slate-600 self-center shrink-0" />
           </div>
-        ))}
+        ))
+        )}
       </div>
     </div>
   );

@@ -1463,6 +1463,111 @@ export const dbService = {
     return loadFromStorage<Justification[]>('justifications', INITIAL_JUSTIFICATIONS);
   },
 
+  async syncJustificationsFromSupabase(): Promise<Justification[]> {
+    const local = this.getJustifications();
+    if (!isSupabaseConfigured) return local;
+    try {
+      const { data, error } = await supabase
+        .from('justifications')
+        .select('*')
+        .order('submitted_at', { ascending: false });
+
+      if (error) {
+        console.warn('Could not sync justifications from Supabase:', error.message);
+        return local;
+      }
+
+      if (data) {
+        const users = this.getUsers();
+        const schools = this.getSchools();
+        const zones = this.getZones();
+
+        const mapped: Justification[] = data.map((d: any) => {
+          const user = users.find((u) => u.id === d.user_id || u.email === d.user_id);
+          const school = user ? schools.find((s) => s.id === user.assigned_school_id || s.id === (user as any).school_id) : undefined;
+          const zone = school ? zones.find((z) => z.id === school.zone_id) : undefined;
+
+          return {
+            id: d.id,
+            attendance_record_id: d.attendance_record_id || `att-${d.id}`,
+            user_id: d.user_id,
+            user_name: user?.full_name || d.user_name || 'Pengetua / Guru Besar',
+            school_name: school?.name || user?.school_name || 'Sekolah Bertugas',
+            date: d.date || (d.submitted_at ? d.submitted_at.split('T')[0] : new Date().toISOString().split('T')[0]),
+            reason_category: d.reason_category || 'URUSAN_RASMI',
+            description: d.description || '',
+            status: d.status || 'MENUNGGU_SEMAKAN',
+            submitted_at: d.submitted_at || d.created_at || new Date().toISOString(),
+            reviewed_by: d.reviewed_by,
+            reviewed_at: d.reviewed_at,
+            review_remarks: d.review_remarks,
+            documents: d.documents || [],
+          };
+        });
+
+        saveToStorage('justifications', mapped);
+        return mapped;
+      }
+    } catch (e) {
+      console.warn('Error during justifications sync:', e);
+    }
+    return local;
+  },
+
+  updateJustificationStatus(
+    id: string,
+    status: 'DISAHKAN' | 'DITOLAK' | 'DILULUSKAN',
+    remarks: string,
+    reviewer: UserProfile
+  ): boolean {
+    try {
+      const list = this.getJustifications();
+      const updated = list.map((j) => {
+        if (j.id === id) {
+          return {
+            ...j,
+            status,
+            reviewed_by: reviewer.id,
+            reviewed_by_name: reviewer.full_name,
+            reviewed_at: new Date().toISOString(),
+            review_remarks: remarks,
+          };
+        }
+        return j;
+      });
+      saveToStorage('justifications', updated);
+
+      if (isSupabaseConfigured) {
+        Promise.resolve(
+          supabase
+            .from('justifications')
+            .update({
+              status,
+              reviewed_by: reviewer.id,
+              reviewed_at: new Date().toISOString(),
+              review_remarks: remarks,
+            })
+            .eq('id', id)
+        ).catch(console.error);
+      }
+
+      logAuditEvent({
+        actor_name: reviewer.full_name,
+        actor_role: reviewer.role,
+        actor_id: reviewer.id,
+        action: status === 'DISAHKAN' || status === 'DILULUSKAN' ? 'LULUS_JUSTIFIKASI' : 'TOLAK_JUSTIFIKASI',
+        entity: 'JUSTIFIKASI',
+        record_id: id,
+        remarks: `Semakan justifikasi: ${status}. Catatan: ${remarks || '-'}`,
+      });
+
+      return true;
+    } catch (e) {
+      console.error('Failed to update justification status:', e);
+      return false;
+    }
+  },
+
   getUserTodayAttendance(userId: string, dateStr?: string): AttendanceRecord | undefined {
     const today = dateStr || new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const records = this.getAttendanceRecords();

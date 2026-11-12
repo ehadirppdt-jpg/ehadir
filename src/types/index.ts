@@ -138,6 +138,12 @@ export interface AttendanceRecord {
   gps_validated: boolean;
   clock_in_location?: string;
   clock_out_location?: string;
+  clock_in_lat?: number;
+  clock_in_lng?: number;
+  clock_in_accuracy?: number;
+  clock_out_lat?: number;
+  clock_out_lng?: number;
+  clock_out_accuracy?: number;
   has_justification?: boolean;
   justification_status?: JustificationStatusType;
   is_verified: boolean;

@@ -22,6 +22,7 @@ import { Badge } from '@/components/common/Badge';
 import { SearchInput } from '@/components/common/SearchInput';
 import { EmptyState } from '@/components/common/EmptyState';
 import { exportToExcel } from '@/lib/exportExcel';
+import { AttendanceLocationModal } from './AttendanceLocationModal';
 
 export const AttendanceMonitoringPage: React.FC = () => {
   const { user } = useAuth();
@@ -32,6 +33,7 @@ export const AttendanceMonitoringPage: React.FC = () => {
   const [selectedZone, setSelectedZone] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRecordForMap, setSelectedRecordForMap] = useState<AttendanceRecord | null>(null);
 
   const zones = useMemo(() => dbService.getZones(), []);
   const [records, setRecords] = useState<AttendanceRecord[]>(() => dbService.getAttendanceRecords());
@@ -234,9 +236,15 @@ export const AttendanceMonitoringPage: React.FC = () => {
                                 minute: '2-digit',
                               })}
                             </div>
-                            <div className="text-[10px] text-slate-400 truncate max-w-[140px]">
-                              {rec.clock_in_location || 'Dalam Geofence'}
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRecordForMap(rec)}
+                              className="text-[10px] text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-0.5 mt-0.5 truncate max-w-[150px] text-left font-medium"
+                              title="Klik untuk lihat peta GPS Clock-In"
+                            >
+                              <MapPin className="w-2.5 h-2.5 shrink-0" />
+                              <span className="truncate">{rec.clock_in_location || 'Dalam Geofence'}</span>
+                            </button>
                           </div>
                         ) : (
                           <span className="text-slate-400 italic">Belum Masuk</span>
@@ -252,9 +260,15 @@ export const AttendanceMonitoringPage: React.FC = () => {
                                 minute: '2-digit',
                               })}
                             </div>
-                            <div className="text-[10px] text-slate-400 truncate max-w-[140px]">
-                              {rec.clock_out_location || 'Dalam Geofence'}
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRecordForMap(rec)}
+                              className="text-[10px] text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-0.5 mt-0.5 truncate max-w-[150px] text-left font-medium"
+                              title="Klik untuk lihat peta GPS Clock-Out"
+                            >
+                              <MapPin className="w-2.5 h-2.5 shrink-0" />
+                              <span className="truncate">{rec.clock_out_location || 'Dalam Geofence'}</span>
+                            </button>
                           </div>
                         ) : (
                           <span className="text-slate-400 italic">Belum Keluar</span>
@@ -281,28 +295,42 @@ export const AttendanceMonitoringPage: React.FC = () => {
                       </td>
 
                       <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-1.5">
-                          <span
-                            className={`p-1 rounded ${
-                              rec.face_verified
-                                ? 'bg-emerald-50 text-emerald-600'
-                                : 'bg-slate-100 text-slate-400'
-                            }`}
-                            title={rec.face_verified ? 'Wajah Disahkan' : 'Wajah Tidak Dikesan'}
-                          >
-                            <ScanFace className="w-3.5 h-3.5" />
-                          </span>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`p-1 rounded ${
+                                rec.face_verified
+                                  ? 'bg-emerald-50 text-emerald-600'
+                                  : 'bg-slate-100 text-slate-400'
+                              }`}
+                              title={rec.face_verified ? 'Wajah Disahkan' : 'Wajah Tidak Dikesan'}
+                            >
+                              <ScanFace className="w-3.5 h-3.5" />
+                            </span>
 
-                          <span
-                            className={`p-1 rounded ${
-                              rec.gps_validated
-                                ? 'bg-blue-50 text-blue-600'
-                                : 'bg-rose-50 text-rose-600'
-                            }`}
-                            title={rec.gps_validated ? 'GPS Sah dalam Geofence' : 'Luar Radius'}
-                          >
-                            <MapPin className="w-3.5 h-3.5" />
-                          </span>
+                            <span
+                              className={`p-1 rounded ${
+                                rec.gps_validated
+                                  ? 'bg-blue-50 text-blue-600'
+                                  : 'bg-rose-50 text-rose-600'
+                              }`}
+                              title={rec.gps_validated ? 'GPS Sah dalam Geofence' : 'Luar Radius'}
+                            >
+                              <MapPin className="w-3.5 h-3.5" />
+                            </span>
+                          </div>
+
+                          {/* Dedicated Map Location Inspection Button */}
+                          {(rec.clock_in_time || rec.clock_out_time) && (
+                            <button
+                              type="button"
+                              onClick={() => setSelectedRecordForMap(rec)}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-[10px] font-semibold transition-colors shadow-xs"
+                            >
+                              <MapPin className="w-3 h-3 text-blue-600" />
+                              <span>Lihat Peta</span>
+                            </button>
+                          )}
                         </div>
                       </td>
 
@@ -315,6 +343,13 @@ export const AttendanceMonitoringPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Interactive Location GPS & Geofence Modal */}
+      <AttendanceLocationModal
+        record={selectedRecordForMap}
+        isOpen={!!selectedRecordForMap}
+        onClose={() => setSelectedRecordForMap(null)}
+      />
     </div>
   );
 };

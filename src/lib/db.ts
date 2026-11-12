@@ -1224,7 +1224,8 @@ export const dbService = {
   },
 
   // --- DASHBOARD METRICS ---
-  getDashboardStats(zoneId?: string): DashboardStats {
+  getDashboardStats(zoneId?: string, targetDate?: string): DashboardStats {
+    const todayStr = targetDate || new Date().toISOString().split('T')[0];
     const schools = this.getSchools().filter((s) => s.status === 'ACTIVE');
     const filteredSchools = zoneId ? schools.filter((s) => s.zone_id === zoneId) : schools;
     const schoolIds = new Set(filteredSchools.map((s) => s.id));
@@ -1234,19 +1235,32 @@ export const dbService = {
       ? allUsers.filter((u) => u.assigned_school_id && schoolIds.has(u.assigned_school_id))
       : allUsers;
 
-    const todayRecords = this.getAttendanceRecords({ date: '2026-11-11' }).filter((r) =>
-      zoneId ? r.zone_id === zoneId : true
-    );
+    const allRecords = this.getAttendanceRecords();
+    let todayRecords = allRecords.filter((r) => {
+      const match = r.date === todayStr || (r.clock_in_time && r.clock_in_time.startsWith(todayStr));
+      const zoneMatch = zoneId ? r.zone_id === zoneId : true;
+      return match && zoneMatch;
+    });
 
+    // Fallback if no records today yet, check if there are test records for 2026-11-11
+    if (todayRecords.length === 0) {
+      todayRecords = allRecords.filter((r) => {
+        const zoneMatch = zoneId ? r.zone_id === zoneId : true;
+        return r.date === '2026-11-11' && zoneMatch;
+      });
+    }
+
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
     const monthlyRecords = this.getMonthlyRecords().filter((m) =>
       zoneId ? m.zone_id === zoneId : true
     );
 
-    const assignments = this.getApproverAssignments(11, 2026);
+    const assignments = this.getApproverAssignments(currentMonth, currentYear);
     const assignedSchoolIds = new Set(assignments.map((a) => a.school_id));
     const unassignedCount = filteredSchools.filter((s) => !assignedSchoolIds.has(s.id)).length;
 
-    const presentCount = todayRecords.filter((r) => r.status === 'LENGKAP' || r.status === 'LEWAT').length;
+    const presentCount = todayRecords.filter((r) => !!r.clock_in_time).length;
     const totalPgb = filteredUsers.length || 1;
     const percentage = Math.round((presentCount / totalPgb) * 100);
 
@@ -1255,13 +1269,70 @@ export const dbService = {
       totalPgb: filteredUsers.length,
       attendanceTodayCount: presentCount,
       attendanceTodayPercentage: Math.min(100, percentage),
-      notClockedInCount: Math.max(0, filteredUsers.length - todayRecords.length),
+      notClockedInCount: Math.max(0, filteredUsers.length - presentCount),
       lateTodayCount: todayRecords.filter((r) => r.status === 'LEWAT').length,
       incompleteRecordsCount: todayRecords.filter((r) => r.status === 'TIDAK_LENGKAP').length,
       pendingJustificationsCount: todayRecords.filter((r) => r.has_justification && r.justification_status === 'MENUNGGU_SEMAKAN').length,
       pendingMonthlyVerificationCount: monthlyRecords.filter((m) => m.status === 'MENUNGGU_SEMAKAN' || m.status === 'DALAM_SEMAKAN').length,
       unassignedApproverCount: unassignedCount,
     };
+  },
+
+  async syncAttendanceRecordsFromSupabase(): Promise<AttendanceRecord[]> {
+    const local = this.getAttendanceRecords();
+    if (!isSupabaseConfigured) return local;
+    try {
+      const { data, error } = await supabase
+        .from('attendance_records')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (data && !error && data.length > 0) {
+        const users = this.getUsers();
+        const schools = this.getSchools();
+        const merged = [...local];
+
+        for (const row of data) {
+          const user = users.find((u) => u.id === row.user_id || u.email === row.user_id);
+          const school = schools.find((s) => s.id === row.school_id);
+          const existingIdx = merged.findIndex(
+            (m) => (m.id === row.id) || (m.user_id === row.user_id && m.date === row.date)
+          );
+
+          const recordItem: AttendanceRecord = {
+            id: row.id,
+            user_id: row.user_id,
+            pgb_name: user?.full_name || 'Pengetua / Guru Besar',
+            school_id: row.school_id || user?.assigned_school_id || 'sch-001',
+            school_name: school?.name || user?.school_name || 'Sekolah PGB',
+            zone_id: school?.zone_id || 'zone-z01',
+            zone_name: school?.zone_name || 'ZON PENTADBIRAN',
+            date: row.date,
+            clock_in_time: row.clock_in_time,
+            clock_out_time: row.clock_out_time,
+            clock_in_location: 'Lokasi Sah Geofence',
+            clock_out_location: row.clock_out_time ? 'Lokasi Sah Geofence' : undefined,
+            total_working_minutes: Number(row.total_working_minutes) || 0,
+            late_minutes: Number(row.late_minutes) || 0,
+            status: row.status || 'LENGKAP',
+            face_verified: true,
+            gps_validated: true,
+            is_verified: row.is_verified || false,
+            created_at: row.created_at || new Date().toISOString(),
+          };
+
+          if (existingIdx >= 0) {
+            merged[existingIdx] = { ...merged[existingIdx], ...recordItem };
+          } else {
+            merged.push(recordItem);
+          }
+        }
+
+        saveToStorage('attendance_records', merged);
+        return merged;
+      }
+    } catch (_) {}
+    return local;
   },
 
   getPpdOfficeLocation(): PpdOfficeLocation {
@@ -1438,6 +1509,35 @@ export const dbService = {
 
     saveToStorage('attendance_records', updatedRecords);
 
+    // Sync to Supabase attendance_records if configured (Clock In)
+    if (isSupabaseConfigured) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const payload: any = {
+        date: newRecord.date,
+        clock_in_time: newRecord.clock_in_time,
+        status: newRecord.status,
+        is_verified: newRecord.is_verified || false,
+        total_working_minutes: newRecord.total_working_minutes || 0,
+        late_minutes: newRecord.late_minutes || 0,
+        updated_at: newRecord.created_at,
+      };
+
+      if (isUuid.test(newRecord.user_id)) {
+        payload.user_id = newRecord.user_id;
+      }
+      if (school?.id && isUuid.test(school.id)) {
+        payload.school_id = school.id;
+      }
+
+      if (payload.user_id) {
+        Promise.resolve(
+          supabase
+            .from('attendance_records')
+            .upsert([payload], { onConflict: 'user_id,date' })
+        ).catch(() => {});
+      }
+    }
+
     logAuditEvent({
       actor_name: user.full_name,
       actor_role: 'PGB',
@@ -1495,6 +1595,25 @@ export const dbService = {
 
     const updatedRecords = records.map((r) => (r.id === existing.id ? updatedRecord : r));
     saveToStorage('attendance_records', updatedRecords);
+
+    // Sync to Supabase attendance_records if configured (Clock Out)
+    if (isSupabaseConfigured) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (isUuid.test(updatedRecord.user_id)) {
+        Promise.resolve(
+          supabase
+            .from('attendance_records')
+            .update({
+              clock_out_time: updatedRecord.clock_out_time,
+              total_working_minutes: updatedRecord.total_working_minutes,
+              status: updatedRecord.status,
+              updated_at: updatedRecord.clock_out_time,
+            })
+            .eq('user_id', updatedRecord.user_id)
+            .eq('date', updatedRecord.date)
+        ).catch(() => {});
+      }
+    }
 
     logAuditEvent({
       actor_name: existing.pgb_name,

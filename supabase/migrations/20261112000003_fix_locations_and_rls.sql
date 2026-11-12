@@ -96,3 +96,26 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- 6. Buka akses RLS untuk table attendance_records (supaya rekod kehadiran masuk & keluar disimpan ke cloud)
+ALTER TABLE IF EXISTS public.attendance_records ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Allow select for attendance_records" ON public.attendance_records;
+CREATE POLICY "Allow select for attendance_records"
+ON public.attendance_records FOR SELECT
+TO anon, authenticated
+USING (true);
+
+DROP POLICY IF EXISTS "Allow insert/update/delete for attendance_records" ON public.attendance_records;
+CREATE POLICY "Allow insert/update/delete for attendance_records"
+ON public.attendance_records FOR ALL
+TO anon, authenticated
+USING (true)
+WITH CHECK (true);
+
+-- Benarkan rekod kehadiran fleksibel jika id sekolah tempatan belum selesai diselaraskan
+ALTER TABLE IF EXISTS public.attendance_records 
+  ALTER COLUMN school_id DROP NOT NULL;
+ALTER TABLE IF EXISTS public.attendance_records 
+  DROP CONSTRAINT IF EXISTS attendance_records_school_id_fkey;
+
+

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Clock,
   ScanFace,
@@ -27,24 +27,31 @@ export const AttendanceMonitoringPage: React.FC = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
 
-  const [filterDate, setFilterDate] = useState<string>('2026-11-11');
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [filterDate, setFilterDate] = useState<string>(todayStr);
   const [selectedZone, setSelectedZone] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
   const zones = useMemo(() => dbService.getZones(), []);
-  const records = useMemo(() => dbService.getAttendanceRecords(), []);
+  const [records, setRecords] = useState<AttendanceRecord[]>(() => dbService.getAttendanceRecords());
+
+  useEffect(() => {
+    dbService.syncAttendanceRecordsFromSupabase().then((synced) => {
+      setRecords(synced);
+    });
+  }, []);
 
   // Filter attendance records based on role (Admin Zon only sees assigned zones)
   const accessibleRecords = useMemo(() => {
-    if (user?.role === 'SUPER_ADMIN' || user?.role === 'MONITORING_ADMIN') {
-      return records;
-    }
-    if (user?.role === 'ADMIN_ZON') {
-      const allowedZoneIds = new Set(user.assigned_zone_ids || []);
-      return records.filter((r) => r.zone_id && allowedZoneIds.has(r.zone_id));
-    }
-    return [];
+    return records.filter((r) => {
+      if (user?.role === 'SUPER_ADMIN' || user?.role === 'MONITORING_ADMIN') return true;
+      if (user?.role === 'ADMIN_ZON') {
+        const allowedZoneIds = new Set(user.assigned_zone_ids || []);
+        return r.zone_id && allowedZoneIds.has(r.zone_id);
+      }
+      return false;
+    });
   }, [records, user]);
 
   const filteredRecords = useMemo(() => {

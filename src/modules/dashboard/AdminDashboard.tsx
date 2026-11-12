@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   School,
   Users,
@@ -54,10 +54,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigate }) =>
     return undefined;
   }, [selectedZone, user, accessibleZones]);
 
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    // Sync live attendance records and user accounts from Supabase
+    dbService.syncAttendanceRecordsFromSupabase().then(() => {
+      setVersion((v) => v + 1);
+    });
+    dbService.syncUsersFromSupabase().then(() => {
+      setVersion((v) => v + 1);
+    });
+  }, []);
+
   // Calculate live database metrics
   const stats = useMemo(() => {
     return dbService.getDashboardStats(activeZoneId);
-  }, [activeZoneId]);
+  }, [activeZoneId, version]);
 
   return (
     <div className="space-y-6">

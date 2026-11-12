@@ -166,15 +166,23 @@ export const INITIAL_JUSTIFICATIONS: Justification[] = [];
 function loadFromStorage<T>(key: string, defaultData: T): T {
   try {
     // Purge legacy demo seed data from browser localStorage on first run
-    const purgeFlag = 'ehadir_purge_v8_purge_probe';
+    // v9: Full reset - clear all operational data, keep Super Admin only
+    const purgeFlag = 'ehadir_purge_v9_reset_all';
     if (!localStorage.getItem(purgeFlag)) {
+      // Remove all old purge flags too so this always runs fresh
+      localStorage.removeItem('ehadir_purge_v8_purge_probe');
+
       const rawUsers = localStorage.getItem('ehadir_users');
       if (rawUsers) {
         try {
           const parsed = JSON.parse(rawUsers);
           if (Array.isArray(parsed)) {
+            // Keep only real SUPER_ADMIN users (not probe/test accounts)
             const superAdmins = parsed.filter(
-              (u: any) => u.role === 'SUPER_ADMIN' && !u.email?.toLowerCase()?.includes('probe')
+              (u: any) =>
+                u.role === 'SUPER_ADMIN' &&
+                !u.email?.toLowerCase()?.includes('probe') &&
+                !u.email?.toLowerCase()?.includes('test')
             );
             localStorage.setItem('ehadir_users', JSON.stringify(superAdmins));
           } else {
@@ -186,6 +194,8 @@ function loadFromStorage<T>(key: string, defaultData: T): T {
       } else {
         localStorage.removeItem('ehadir_users');
       }
+
+      // Clear ALL operational data for fresh start
       localStorage.removeItem('ehadir_schools');
       localStorage.removeItem('ehadir_attendance_records');
       localStorage.removeItem('ehadir_justifications');
@@ -193,6 +203,16 @@ function loadFromStorage<T>(key: string, defaultData: T): T {
       localStorage.removeItem('ehadir_approver_assignments');
       localStorage.removeItem('ehadir_notifications');
       localStorage.removeItem('ehadir_device_registry');
+      localStorage.removeItem('ehadir_monthly_approvals');
+      localStorage.removeItem('ehadir_zones'); // Reset zones to default seed
+      localStorage.removeItem('ehadir_work_schedules');
+      localStorage.removeItem('ehadir_holiday_calendar');
+      localStorage.removeItem('ehadir_audit_logs');
+      localStorage.removeItem('ehadir_risk_alerts');
+      localStorage.removeItem('ehadir_biometric_profiles');
+      localStorage.removeItem('ehadir_admin_zone_assignments');
+      localStorage.removeItem('ehadir_admin_school_assignments');
+
       localStorage.setItem(purgeFlag, 'true');
     }
 

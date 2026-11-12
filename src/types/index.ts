@@ -52,6 +52,7 @@ export interface UserProfile {
   assigned_zone_ids?: string[]; // For Admin Zon
   assigned_school_id?: string;  // For PGB
   school_name?: string;
+  password?: string;
 }
 
 export interface Zone {

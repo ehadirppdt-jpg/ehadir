@@ -25,6 +25,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [schoolId, setSchoolId] = useState('');
+  const [customSchoolName, setCustomSchoolName] = useState('');
   const [role, setRole] = useState<UserRoleType>('PGB');
   const [status, setStatus] = useState<AccountStatusType>('ACTIVE');
   const [newPassword, setNewPassword] = useState('');
@@ -38,6 +39,7 @@ export const UserModal: React.FC<UserModalProps> = ({
       setEmail(user.email);
       setPhone(user.phone_number || '');
       setSchoolId(user.assigned_school_id || '');
+      setCustomSchoolName(user.school_name || '');
       setRole(user.role);
       setStatus(user.status);
     } else {
@@ -47,6 +49,7 @@ export const UserModal: React.FC<UserModalProps> = ({
       setEmail('');
       setPhone('');
       setSchoolId('');
+      setCustomSchoolName('');
       setRole('PGB');
       setStatus('ACTIVE');
     }
@@ -67,8 +70,8 @@ export const UserModal: React.FC<UserModalProps> = ({
       role,
       status,
       assigned_school_id: schoolId || undefined,
-      school_name: assignedSchool ? assignedSchool.name : undefined,
-      ...(newPassword.trim() ? { newPassword: newPassword.trim() } : {}),
+      school_name: assignedSchool ? assignedSchool.name : (customSchoolName.trim().toUpperCase() || undefined),
+      ...(newPassword.trim() ? { newPassword: newPassword.trim(), password: newPassword.trim() } : {}),
     } as any);
     onClose();
   };
@@ -178,18 +181,37 @@ export const UserModal: React.FC<UserModalProps> = ({
           <label className="block text-xs font-semibold text-slate-700 mb-1">
             Penetapan Sekolah Bertugas
           </label>
-          <select
-            value={schoolId}
-            onChange={(e) => setSchoolId(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
-          >
-            <option value="">-- Pilih Sekolah --</option>
-            {schools.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.code} — {s.name} ({s.zone_name || 'Tanpa Zon'})
-              </option>
-            ))}
-          </select>
+          {schools.length > 0 ? (
+            <select
+              value={schoolId}
+              onChange={(e) => {
+                setSchoolId(e.target.value);
+                const s = schools.find((sch) => sch.id === e.target.value);
+                if (s) setCustomSchoolName(s.name);
+              }}
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
+            >
+              <option value="">-- Pilih Sekolah --</option>
+              {schools.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.code} — {s.name} ({s.zone_name || 'Tanpa Zon'})
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div className="space-y-1">
+              <input
+                type="text"
+                value={customSchoolName}
+                onChange={(e) => setCustomSchoolName(e.target.value)}
+                placeholder="Masukkan Nama Sekolah (cth: SK PEKAN TUARAN)"
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 uppercase"
+              />
+              <p className="text-[11px] text-slate-400">
+                Pangkalan data sekolah dikosongkan. Anda boleh taip nama sekolah atau daftar sekolah di menu Pengurusan Sekolah.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-3 pt-1">
@@ -203,6 +225,7 @@ export const UserModal: React.FC<UserModalProps> = ({
               <option value="PGB">PGB (Pengetua / Guru Besar)</option>
               <option value="ADMIN_ZON">Admin Zon</option>
               <option value="MONITORING_ADMIN">Monitoring Admin</option>
+              <option value="SUPER_ADMIN">Ketua Pentadbir (Super Admin)</option>
             </select>
           </div>
 

@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import {
   Layers,
   Edit2,
-  Power,
   Users,
   School,
   CheckCircle,
@@ -53,20 +52,6 @@ export const ZoneManagementPage: React.FC = () => {
   const handleEdit = (zone: Zone) => {
     setSelectedZone(zone);
     setIsModalOpen(true);
-  };
-
-  const handleToggleStatus = (zone: Zone) => {
-    if (!user) return;
-    try {
-      const updated = dbService.toggleZoneStatus(zone.id, user);
-      showToast(
-        `Status ${updated.name} ditukar kepada ${updated.is_active ? 'AKTIF' : 'NYAHAKTIF'}.`,
-        'success'
-      );
-      refreshZones();
-    } catch (e: any) {
-      showToast(e.message, 'error');
-    }
   };
 
   const handleSaveZone = (data: Partial<Zone>) => {
@@ -146,8 +131,8 @@ export const ZoneManagementPage: React.FC = () => {
                 </span>
 
                 <div className="flex items-center gap-2">
-                  <Badge variant={zone.is_active ? 'success' : 'neutral'} size="sm">
-                    {zone.is_active ? 'Zon Aktif' : 'Nyahaktif'}
+                  <Badge variant="success" size="sm">
+                    Zon Aktif
                   </Badge>
                 </div>
               </div>
@@ -194,26 +179,14 @@ export const ZoneManagementPage: React.FC = () => {
 
             {/* Actions Footer */}
             {isSuperAdmin && (
-              <div className="px-6 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
-                <button
-                  onClick={() => handleToggleStatus(zone)}
-                  className={`text-xs font-semibold flex items-center gap-1.5 transition-colors ${
-                    zone.is_active
-                      ? 'text-slate-500 hover:text-rose-600'
-                      : 'text-emerald-600 hover:text-emerald-700'
-                  }`}
-                >
-                  <Power className="w-3.5 h-3.5" />
-                  {zone.is_active ? 'Nyahaktifkan' : 'Aktifkan'}
-                </button>
-
+              <div className="px-6 py-3 bg-slate-50/80 border-t border-slate-100 flex items-center justify-end">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handleEdit(zone)}
                   icon={<Edit2 className="w-3.5 h-3.5" />}
                 >
-                  Kemaskini
+                  Kemaskini Zon
                 </Button>
               </div>
             )}

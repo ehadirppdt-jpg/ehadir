@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   School as SchoolIcon,
   Plus,
@@ -56,6 +56,12 @@ export const SchoolManagementPage: React.FC<SchoolManagementPageProps> = ({
     setSchools(dbService.getSchools());
   };
 
+  useEffect(() => {
+    dbService.syncSchoolsFromSupabase().then((synced) => {
+      setSchools(synced);
+    });
+  }, []);
+
   // Filter schools based on Admin Zon assigned zones
   const accessibleSchools = useMemo(() => {
     if (user?.role === 'SUPER_ADMIN' || user?.role === 'MONITORING_ADMIN') {
@@ -110,6 +116,23 @@ export const SchoolManagementPage: React.FC<SchoolManagementPageProps> = ({
         refreshSchools();
       } catch (err: any) {
         showToast(err.message, 'error');
+      }
+    }
+  };
+
+  const handleDeleteAllSchools = () => {
+    if (!user) return;
+    if (
+      confirm(
+        'Adakah anda pasti ingin MEMADAM SEMUA DATA SEKOLAH? Tindakan ini akan mengosongkan pangkalan data sekolah agar anda boleh memasukkan atau mengimport data sekolah sebenar.'
+      )
+    ) {
+      try {
+        const res = dbService.deleteAllSchools(user);
+        showToast(res.message, 'success');
+        refreshSchools();
+      } catch (err: any) {
+        showToast(err.message || 'Gagal memadam sekolah.', 'error');
       }
     }
   };
@@ -193,7 +216,7 @@ export const SchoolManagementPage: React.FC<SchoolManagementPageProps> = ({
         <div>
           <h2 className="text-xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
             <SchoolIcon className="w-6 h-6 text-blue-600" />
-            Pengurusan Sekolah PPD Tuaran (~85 Sekolah)
+            Pengurusan Sekolah PPD Tuaran ({schools.length} Sekolah)
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Pengurusan profil institusi, kod KPM, penetapan satu zon aktif, koordinat GPS dan radius geofence.
@@ -201,6 +224,17 @@ export const SchoolManagementPage: React.FC<SchoolManagementPageProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {isSuperAdmin && schools.length > 0 && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleDeleteAllSchools}
+              icon={<Trash2 className="w-4 h-4" />}
+            >
+              Padam Semua Sekolah
+            </Button>
+          )}
+
           <Button
             variant="outline"
             size="sm"

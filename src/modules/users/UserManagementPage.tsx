@@ -118,17 +118,41 @@ export const UserManagementPage: React.FC = () => {
     }
   };
 
+  const handleDeleteAllPgb = () => {
+    if (!user) return;
+    const pgbUsers = users.filter((u) => u.role === 'PGB');
+    if (
+      confirm(
+        `Adakah anda pasti ingin MEMADAM SEMUA ${pgbUsers.length} AKAUN PGB? Tindakan ini akan mengosongkan senarai Pengetua & Guru Besar untuk pendaftaran semula.`
+      )
+    ) {
+      try {
+        pgbUsers.forEach((p) => {
+          dbService.deleteUser(p.id, user);
+        });
+        showToast(`${pgbUsers.length} akaun PGB berjaya dipadam.`, 'success');
+        refreshUsers();
+      } catch (err: any) {
+        showToast(err.message || 'Gagal memadam akaun PGB.', 'error');
+      }
+    }
+  };
+
   const handleSave = (data: Partial<UserProfile> & { newPassword?: string }) => {
     if (!user) return;
     try {
       if (editingUser) {
-        dbService.updateUser(editingUser.id, data, user);
+        dbService.updateUser(
+          editingUser.id,
+          {
+            ...data,
+            ...(data.newPassword ? { password: data.newPassword } : {}),
+          },
+          user
+        );
         showToast(`Profil ${data.full_name} berjaya dikemaskini.`, 'success');
         if (data.newPassword) {
-          showToast(
-            `Nota: Untuk tukar kata laluan, gunakan fungsi "Tetapan Semula Kata Laluan" di Supabase Dashboard atau hantar pautan semula melalui butang KeyRound.`,
-            'info'
-          );
+          showToast(`Kata laluan baharu untuk ${data.full_name} berjaya dikemaskini.`, 'info');
         }
       } else {
         dbService.createUser(
@@ -142,6 +166,7 @@ export const UserManagementPage: React.FC = () => {
             role: data.role || 'PGB',
             assigned_school_id: data.assigned_school_id,
             school_name: data.school_name,
+            password: data.newPassword,
           },
           user
         );
@@ -183,6 +208,17 @@ export const UserManagementPage: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {isSuperAdmin && users.some((u) => u.role === 'PGB') && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={handleDeleteAllPgb}
+              icon={<Trash2 className="w-4 h-4" />}
+            >
+              Padam Semua PGB
+            </Button>
+          )}
+
           <Button
             variant="outline"
             size="sm"

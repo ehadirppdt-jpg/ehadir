@@ -40,7 +40,7 @@ export const ReportsAnalyticsPage: React.FC = () => {
         Jumlah_PGB: z.total_pgb || 0,
         Admin_Zon: z.assigned_admin_name || 'Belum Ditetapkan',
         Kadar_Kehadiran: '98.5%',
-        Status_Zon: z.is_active ? 'Aktif' : 'Nyahaktif',
+        Status_Zon: 'Aktif',
       }));
     } else if (reportType === 'BY_SCHOOL') {
       data = schools.map((s) => ({

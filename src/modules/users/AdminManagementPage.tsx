@@ -14,7 +14,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { dbService } from '@/lib/db';
-import { UserProfile, Zone } from '@/types';
+import { UserProfile, Zone, UserRoleType } from '@/types';
 import { Button } from '@/components/common/Button';
 import { Badge } from '@/components/common/Badge';
 import { Modal } from '@/components/common/Modal';
@@ -33,7 +33,7 @@ export const AdminManagementPage: React.FC = () => {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [position, setPosition] = useState('');
-  const [role, setRole] = useState<'ADMIN_ZON' | 'MONITORING_ADMIN'>('ADMIN_ZON');
+  const [role, setRole] = useState<UserRoleType>('ADMIN_ZON');
   const [assignedZoneIds, setAssignedZoneIds] = useState<string[]>([]);
   const [newPassword, setNewPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -85,13 +85,18 @@ export const AdminManagementPage: React.FC = () => {
           selectedAdmin.id,
           {
             full_name: fullName.trim().toUpperCase(),
+            email: email.trim().toLowerCase(),
             position: position.trim(),
             role,
             assigned_zone_ids: role === 'ADMIN_ZON' ? assignedZoneIds : [],
+            ...(newPassword.trim() ? { password: newPassword.trim() } : {}),
           },
           user
         );
         showToast(`Maklumat pentadbir ${fullName} berjaya dikemaskini.`, 'success');
+        if (newPassword.trim()) {
+          showToast('Kata laluan pentadbir telah berjaya dikemaskini.', 'info');
+        }
       } else {
         dbService.createUser(
           {
@@ -102,6 +107,7 @@ export const AdminManagementPage: React.FC = () => {
             role,
             status: 'ACTIVE',
             assigned_zone_ids: role === 'ADMIN_ZON' ? assignedZoneIds : [],
+            ...(newPassword.trim() ? { password: newPassword.trim() } : {}),
           },
           user
         );
@@ -262,7 +268,6 @@ export const AdminManagementPage: React.FC = () => {
                 </div>
               </div>
 
-              {admin.role !== 'SUPER_ADMIN' && (
                 <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
                   <Button
                     variant="outline"
@@ -270,78 +275,77 @@ export const AdminManagementPage: React.FC = () => {
                     onClick={() => handleOpenModal(admin)}
                     icon={<Edit2 className="w-3.5 h-3.5" />}
                   >
-                    Ubah Zon / Skop
+                    Kemaskini Maklumat
                   </Button>
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={() => handleDeleteAdmin(admin)}
-                    icon={<Trash2 className="w-3.5 h-3.5" />}
-                  >
-                    Padam
-                  </Button>
+                  {admin.id !== user?.id && (
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDeleteAdmin(admin)}
+                      icon={<Trash2 className="w-3.5 h-3.5" />}
+                    >
+                      Padam
+                    </Button>
+                  )}
                 </div>
-              )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Modal */}
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title={selectedAdmin ? `Kemaskini ${selectedAdmin.full_name}` : 'Daftar Pentadbir Baharu'}
+          subtitle="Tetapkan maklumat akaun, peranan pentadbiran, kata laluan dan zon sekolah"
+          maxWidth="md"
+        >
+          <form onSubmit={handleSave} className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Nama Penuh</label>
+              <input
+                type="text"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 uppercase"
+              />
             </div>
-          );
-        })}
-      </div>
 
-      {/* Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={selectedAdmin ? `Ubah Kuasa ${selectedAdmin.full_name}` : 'Daftar Pentadbir Baharu'}
-        subtitle="Tetapkan peranan pentadbiran dan zon sekolah yang dibenarkan untuk diuruskan"
-        maxWidth="md"
-      >
-        <form onSubmit={handleSave} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Nama Penuh</label>
-            <input
-              type="text"
-              required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 uppercase"
-            />
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Emel Rasmi PPD</label>
+              <input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Emel Rasmi PPD</label>
-            <input
-              type="email"
-              required
-              disabled={!!selectedAdmin}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-slate-100"
-            />
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Jawatan di PPD</label>
+              <input
+                type="text"
+                required
+                value={position}
+                onChange={(e) => setPosition(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Jawatan di PPD</label>
-            <input
-              type="text"
-              required
-              value={position}
-              onChange={(e) => setPosition(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
-          </div>
-
-          {/* Kata Laluan — hanya untuk cipta akaun baharu */}
-          {!selectedAdmin && (
+            {/* Kata Laluan — untuk cipta atau kemaskini */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Kata Laluan Awal
+                {selectedAdmin ? 'Kata Laluan Baharu (Kosongkan jika tidak mahu tukar)' : 'Kata Laluan Awal'}
               </label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Min. 8 aksara"
+                  placeholder={selectedAdmin ? 'Masukkan kata laluan baharu...' : 'Min. 8 aksara'}
                   minLength={newPassword ? 8 : undefined}
                   className="w-full px-3 py-2 pr-10 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
@@ -354,22 +358,25 @@ export const AdminManagementPage: React.FC = () => {
                 </button>
               </div>
               <p className="text-[11px] text-slate-400 mt-1">
-                Kata laluan ini untuk log masuk pertama. Pentadbir boleh tukar sendiri selepas itu.
+                {selectedAdmin
+                  ? 'Masukkan kata laluan baharu untuk set semula akses pentadbir ini.'
+                  : 'Kata laluan awal untuk log masuk pertama pentadbir.'}
               </p>
             </div>
-          )}
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Peranan Akses</label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value as any)}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
-            >
-              <option value="ADMIN_ZON">Admin Zon (Mengurus zon tertentu)</option>
-              <option value="MONITORING_ADMIN">Monitoring Admin (Hanya memantau)</option>
-            </select>
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">Peranan Akses</label>
+              <select
+                value={role}
+                disabled={selectedAdmin?.id === user?.id}
+                onChange={(e) => setRole(e.target.value as any)}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white disabled:bg-slate-100"
+              >
+                <option value="ADMIN_ZON">Admin Zon (Mengurus zon tertentu)</option>
+                <option value="MONITORING_ADMIN">Monitoring Admin (Hanya memantau)</option>
+                <option value="SUPER_ADMIN">Ketua Pentadbir (Super Admin)</option>
+              </select>
+            </div>
 
           {role === 'ADMIN_ZON' && (
             <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">

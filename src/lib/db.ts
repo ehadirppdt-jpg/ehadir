@@ -29,10 +29,8 @@ export const INITIAL_ZONES: Zone[] = [
     color_hex: '#0284C7',
     description: 'Zon Pentadbiran Sekolah Kawasan Tenghilan',
     is_active: true,
-    total_schools: 14,
-    total_pgb: 14,
-    assigned_admin_name: 'Ustaz Azman bin Harun (Admin Zon Z01 & Z02)',
-    assigned_admin_id: 'usr-admin-tenghilan',
+    total_schools: 0,
+    total_pgb: 0,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
   },
@@ -43,10 +41,8 @@ export const INITIAL_ZONES: Zone[] = [
     color_hex: '#0D9488',
     description: 'Zon Pentadbiran Sekolah Kawasan Mengkabong',
     is_active: true,
-    total_schools: 15,
-    total_pgb: 15,
-    assigned_admin_name: 'Ustaz Azman bin Harun (Admin Zon Z01 & Z02)',
-    assigned_admin_id: 'usr-admin-tenghilan',
+    total_schools: 0,
+    total_pgb: 0,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
   },
@@ -57,10 +53,8 @@ export const INITIAL_ZONES: Zone[] = [
     color_hex: '#2563EB',
     description: 'Zon Pentadbiran Sekolah Kawasan Sulaman',
     is_active: true,
-    total_schools: 16,
-    total_pgb: 16,
-    assigned_admin_name: 'Puan Siti Rahmah binti Salleh',
-    assigned_admin_id: 'usr-admin-sulaman',
+    total_schools: 0,
+    total_pgb: 0,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
   },
@@ -71,10 +65,8 @@ export const INITIAL_ZONES: Zone[] = [
     color_hex: '#7C3AED',
     description: 'Zon Pentadbiran Sekolah Kawasan Kiulu',
     is_active: true,
-    total_schools: 14,
-    total_pgb: 14,
-    assigned_admin_name: 'Encik Roger Majalap (Admin Zon Z04 & Z05)',
-    assigned_admin_id: 'usr-admin-kiulu',
+    total_schools: 0,
+    total_pgb: 0,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
   },
@@ -85,10 +77,8 @@ export const INITIAL_ZONES: Zone[] = [
     color_hex: '#D97706',
     description: 'Zon Pentadbiran Sekolah Kawasan Nabalu',
     is_active: true,
-    total_schools: 12,
-    total_pgb: 12,
-    assigned_admin_name: 'Encik Roger Majalap (Admin Zon Z04 & Z05)',
-    assigned_admin_id: 'usr-admin-kiulu',
+    total_schools: 0,
+    total_pgb: 0,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
   },
@@ -99,193 +89,14 @@ export const INITIAL_ZONES: Zone[] = [
     color_hex: '#059669', // Emerald Green (No longer red as requested)
     description: 'Zon Pentadbiran Sekolah Kawasan Tamparuli',
     is_active: true,
-    total_schools: 14,
-    total_pgb: 14,
-    assigned_admin_name: 'Encik Hendry Gumpil',
-    assigned_admin_id: 'usr-admin-tamparuli',
+    total_schools: 0,
+    total_pgb: 0,
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
   },
 ];
 
-export const INITIAL_SCHOOLS: School[] = [
-  {
-    id: 'sch-001',
-    code: 'XBA4001',
-    name: 'SK PEKAN TUARAN',
-    category: 'SK',
-    address: 'Peti Surat 102, 89208 Tuaran, Sabah',
-    postal_code: '89208',
-    phone: '088-788100',
-    email: 'xba4001@moe.edu.my',
-    latitude: 6.13054,
-    longitude: 116.23321,
-    geofence_radius_meters: 100,
-    status: 'ACTIVE',
-    location_status: 'VERIFIED',
-    zone_id: 'zone-z03',
-    zone_name: 'ZON SULAMAN',
-    zone_code: 'Z03',
-    assigned_pgb_name: 'En. Mohd Khairul bin Abdullah',
-    assigned_pgb_id: 'pgb-001',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'sch-002',
-    code: 'XEA4040',
-    name: 'SMK BADIN',
-    category: 'SMK',
-    address: 'Peti Surat 455, 89208 Tuaran, Sabah',
-    postal_code: '89208',
-    phone: '088-788200',
-    email: 'xea4040@moe.edu.my',
-    latitude: 6.15542,
-    longitude: 116.20853,
-    geofence_radius_meters: 150,
-    status: 'ACTIVE',
-    location_status: 'VERIFIED',
-    zone_id: 'zone-z02',
-    zone_name: 'ZON MENGKABONG',
-    zone_code: 'Z02',
-    assigned_pgb_name: 'Pn. Sarah binti Othman',
-    assigned_pgb_id: 'pgb-002',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'sch-003',
-    code: 'XBA4015',
-    name: 'SK TENGHILAN',
-    category: 'SK',
-    address: 'W.D.T 15, 89250 Tamparuli, Sabah',
-    postal_code: '89250',
-    phone: '088-782300',
-    email: 'xba4015@moe.edu.my',
-    latitude: 6.21624,
-    longitude: 116.34812,
-    geofence_radius_meters: 120,
-    status: 'ACTIVE',
-    location_status: 'VERIFIED',
-    zone_id: 'zone-z01',
-    zone_name: 'ZON TENGHILAN',
-    zone_code: 'Z01',
-    assigned_pgb_name: 'En. Justine Jikunan',
-    assigned_pgb_id: 'pgb-003',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'sch-004',
-    code: 'XBA4022',
-    name: 'SK PEKAN TAMPARULI',
-    category: 'SK',
-    address: 'Peti Surat 12, 89257 Tamparuli, Sabah',
-    postal_code: '89257',
-    phone: '088-782100',
-    email: 'xba4022@moe.edu.my',
-    latitude: 6.13681,
-    longitude: 116.26543,
-    geofence_radius_meters: 100,
-    status: 'ACTIVE',
-    location_status: 'VERIFIED',
-    zone_id: 'zone-z06',
-    zone_name: 'ZON TAMPARULI',
-    zone_code: 'Z06',
-    assigned_pgb_name: 'Pn. Dayang Rosnah binti Awang',
-    assigned_pgb_id: 'pgb-004',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'sch-005',
-    code: 'XBA4030',
-    name: 'SK KIULU',
-    category: 'SK',
-    address: 'W.D.T 08, 89250 Tamparuli, Sabah',
-    postal_code: '89250',
-    phone: '088-784100',
-    email: 'xba4030@moe.edu.my',
-    latitude: 6.05921,
-    longitude: 116.29174,
-    geofence_radius_meters: 100,
-    status: 'ACTIVE',
-    location_status: 'VERIFIED',
-    zone_id: 'zone-z04',
-    zone_name: 'ZON KIULU',
-    zone_code: 'Z04',
-    assigned_pgb_name: 'En. Richard bin Gampalid',
-    assigned_pgb_id: 'pgb-005',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'sch-006',
-    code: 'XBA4045',
-    name: 'SK NABALU',
-    category: 'SK',
-    address: 'Peti Surat 32, 89250 Ranau/Tuaran, Sabah',
-    postal_code: '89250',
-    phone: '088-786100',
-    email: 'xba4045@moe.edu.my',
-    latitude: 6.01254,
-    longitude: 116.42581,
-    geofence_radius_meters: 100,
-    status: 'ACTIVE',
-    location_status: 'VERIFIED',
-    zone_id: 'zone-z05',
-    zone_name: 'ZON NABALU',
-    zone_code: 'Z05',
-    assigned_pgb_name: 'Pn. Maria binti Tingalon',
-    assigned_pgb_id: 'pgb-006',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'sch-007',
-    code: 'XEA4041',
-    name: 'SMK SRI NANGKA',
-    category: 'SMK',
-    address: 'Peti Surat 512, 89208 Tuaran, Sabah',
-    postal_code: '89208',
-    phone: '088-788500',
-    email: 'xea4041@moe.edu.my',
-    latitude: 6.16200,
-    longitude: 116.21500,
-    geofence_radius_meters: 120,
-    status: 'ACTIVE',
-    location_status: 'VERIFIED',
-    zone_id: 'zone-z02',
-    zone_name: 'ZON MENGKABONG',
-    zone_code: 'Z02',
-    assigned_pgb_name: 'En. Ambrose bin Minsu',
-    assigned_pgb_id: 'pgb-007',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'sch-008',
-    code: 'XBC4001',
-    name: 'SJK(C) CHENG HWA',
-    category: 'SJKC',
-    address: 'Peti Surat 45, 89257 Tamparuli, Sabah',
-    postal_code: '89257',
-    phone: '088-782400',
-    email: 'xbc4001@moe.edu.my',
-    latitude: 6.13890,
-    longitude: 116.26900,
-    geofence_radius_meters: 80,
-    status: 'ACTIVE',
-    location_status: 'VERIFIED',
-    zone_id: 'zone-z06',
-    zone_name: 'ZON TAMPARULI',
-    zone_code: 'Z06',
-    assigned_pgb_name: 'Pn. Lee Su Fong',
-    assigned_pgb_id: 'pgb-008',
-    created_at: '2026-01-01T00:00:00Z',
-    updated_at: '2026-01-01T00:00:00Z',
-  },
-];
+export const INITIAL_SCHOOLS: School[] = [];
 
 export const INITIAL_USERS: UserProfile[] = [];
 
@@ -355,7 +166,7 @@ export const INITIAL_JUSTIFICATIONS: Justification[] = [];
 function loadFromStorage<T>(key: string, defaultData: T): T {
   try {
     // Purge legacy demo seed data from browser localStorage on first run
-    const purgeFlag = 'ehadir_purge_v6_clean';
+    const purgeFlag = 'ehadir_purge_v7_clean_schools';
     if (!localStorage.getItem(purgeFlag)) {
       const rawUsers = localStorage.getItem('ehadir_users');
       if (rawUsers) {
@@ -375,6 +186,7 @@ function loadFromStorage<T>(key: string, defaultData: T): T {
       } else {
         localStorage.removeItem('ehadir_users');
       }
+      localStorage.removeItem('ehadir_schools');
       localStorage.removeItem('ehadir_attendance_records');
       localStorage.removeItem('ehadir_justifications');
       localStorage.removeItem('ehadir_monthly_records');
@@ -425,7 +237,7 @@ export const dbService = {
     const schools = this.getSchools();
     const users = this.getUsers();
 
-    // Recalculate dynamic counts
+    // Recalculate dynamic counts and assigned admins
     return zones.map((z) => {
       const zoneSchools = schools.filter((s) => s.zone_id === z.id && s.status === 'ACTIVE');
       const schoolIds = new Set(zoneSchools.map((s) => s.id));
@@ -433,10 +245,19 @@ export const dbService = {
         (u) => u.role === 'PGB' && u.assigned_school_id && schoolIds.has(u.assigned_school_id)
       ).length;
 
+      const zoneAdmins = users.filter(
+        (u) => u.role === 'ADMIN_ZON' && (u.assigned_zone_ids || []).includes(z.id)
+      );
+      const assignedAdminName =
+        zoneAdmins.length > 0
+          ? zoneAdmins.map((a) => a.full_name).join(', ')
+          : 'Belum Ditugaskan Pegawai';
+
       return {
         ...z,
         total_schools: zoneSchools.length,
         total_pgb: pgbCount,
+        assigned_admin_name: assignedAdminName,
       };
     });
   },
@@ -529,6 +350,32 @@ export const dbService = {
     const updated = [newSchool, ...schools];
     saveToStorage('schools', updated);
 
+    if (isSupabaseConfigured) {
+      Promise.resolve(
+        supabase.from('schools').upsert([
+          {
+            id: newSchool.id,
+            code: newSchool.code,
+            name: newSchool.name,
+            category: newSchool.category,
+            address: newSchool.address || null,
+            postal_code: newSchool.postal_code || null,
+            phone: newSchool.phone || null,
+            email: newSchool.email || null,
+            latitude: newSchool.latitude,
+            longitude: newSchool.longitude,
+            geofence_radius_meters: newSchool.geofence_radius_meters,
+            status: newSchool.status,
+            zone_id: newSchool.zone_id || null,
+            zone_name: newSchool.zone_name || null,
+            zone_code: newSchool.zone_code || null,
+            created_at: newSchool.created_at,
+            updated_at: newSchool.updated_at,
+          },
+        ])
+      ).catch(() => {});
+    }
+
     logAuditEvent({
       actor_name: actor.full_name,
       actor_role: actor.role,
@@ -557,6 +404,31 @@ export const dbService = {
 
     schools[index] = updatedSchool;
     saveToStorage('schools', schools);
+
+    if (isSupabaseConfigured) {
+      Promise.resolve(
+        supabase
+          .from('schools')
+          .update({
+            code: updatedSchool.code,
+            name: updatedSchool.name,
+            category: updatedSchool.category,
+            address: updatedSchool.address || null,
+            postal_code: updatedSchool.postal_code || null,
+            phone: updatedSchool.phone || null,
+            email: updatedSchool.email || null,
+            latitude: updatedSchool.latitude,
+            longitude: updatedSchool.longitude,
+            geofence_radius_meters: updatedSchool.geofence_radius_meters,
+            status: updatedSchool.status,
+            zone_id: updatedSchool.zone_id || null,
+            zone_name: updatedSchool.zone_name || null,
+            zone_code: updatedSchool.zone_code || null,
+            updated_at: updatedSchool.updated_at,
+          })
+          .eq('id', id)
+      ).catch(() => {});
+    }
 
     logAuditEvent({
       actor_name: actor.full_name,
@@ -594,6 +466,10 @@ export const dbService = {
       const remaining = schools.filter((s) => s.id !== id);
       saveToStorage('schools', remaining);
 
+      if (isSupabaseConfigured) {
+        Promise.resolve(supabase.from('schools').delete().eq('id', id)).catch(() => {});
+      }
+
       logAuditEvent({
         actor_name: actor.full_name,
         actor_role: actor.role,
@@ -611,6 +487,65 @@ export const dbService = {
         message: `Rekod sekolah ${school.name} berjaya dipadam.`,
       };
     }
+  },
+
+  deleteAllSchools(actor: UserProfile): { success: boolean; message: string } {
+    saveToStorage('schools', []);
+
+    if (isSupabaseConfigured) {
+      Promise.resolve(supabase.from('schools').delete().neq('id', '___none___')).catch(() => {});
+    }
+
+    logAuditEvent({
+      actor_name: actor.full_name,
+      actor_role: actor.role,
+      actor_id: actor.id,
+      action: 'PADAM_SEMUA_SEKOLAH',
+      entity: 'SEKOLAH',
+      record_id: 'ALL',
+      remarks: 'Memadam semua rekod sekolah untuk membolehkan pendaftaran semula oleh Super Admin',
+    });
+
+    return {
+      success: true,
+      message: 'Semua rekod sekolah telah berjaya dipadam daripada sistem.',
+    };
+  },
+
+  async syncSchoolsFromSupabase(): Promise<School[]> {
+    if (!isSupabaseConfigured) return this.getSchools();
+    try {
+      const { data, error } = await supabase.from('schools').select('*');
+      if (data && !error && data.length > 0) {
+        const mapped: School[] = data.map((s: any) => ({
+          id: s.id,
+          code: s.code,
+          name: s.name,
+          category: s.category || 'SK',
+          address: s.address || '',
+          postal_code: s.postal_code || '89208',
+          phone: s.phone || '',
+          email: s.email || '',
+          latitude: Number(s.latitude) || 6.134,
+          longitude: Number(s.longitude) || 116.23,
+          geofence_radius_meters: Number(s.geofence_radius_meters) || 100,
+          status: s.status || 'ACTIVE',
+          location_status: s.location_status || 'VERIFIED',
+          zone_id: s.zone_id,
+          zone_name: s.zone_name,
+          zone_code: s.zone_code,
+          assigned_pgb_name: s.assigned_pgb_name,
+          assigned_pgb_id: s.assigned_pgb_id,
+          created_at: s.created_at || new Date().toISOString(),
+          updated_at: s.updated_at || new Date().toISOString(),
+        }));
+        saveToStorage('schools', mapped);
+        return mapped;
+      }
+    } catch (err) {
+      console.warn('Could not sync schools from Supabase:', err);
+    }
+    return this.getSchools();
   },
 
   importSchools(importedData: any[], actor: UserProfile): { added: number; updated: number; errors: string[] } {

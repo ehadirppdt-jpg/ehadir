@@ -26,7 +26,6 @@ export const UserJustificationsPage: React.FC = () => {
   const [viewModalItem, setViewModalItem] = useState<Justification | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Form state
   const [selectedCategory, setSelectedCategory] = useState<string>('URUSAN_RASMI');
   const [incidentDate, setIncidentDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [timeRelated, setTimeRelated] = useState('08:00');
@@ -96,28 +95,28 @@ export const UserJustificationsPage: React.FC = () => {
       case 'DILULUSKAN':
       case 'DISAHKAN':
         return (
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800 flex items-center gap-1">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
             <CheckCircle2 className="w-3 h-3" />
             Diluluskan
           </span>
         );
       case 'MENUNGGU_SEMAKAN':
         return (
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-950 text-amber-400 border border-amber-800 flex items-center gap-1">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
             <Clock className="w-3 h-3" />
             Menunggu Semakan
           </span>
         );
       case 'DIKEMBALIKAN':
         return (
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-950 text-purple-400 border border-purple-800 flex items-center gap-1">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200 flex items-center gap-1">
             <RotateCcw className="w-3 h-3" />
             Dikembalikan
           </span>
         );
       case 'DITOLAK':
         return (
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-950 text-rose-400 border border-rose-800 flex items-center gap-1">
+          <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
             <AlertCircle className="w-3 h-3" />
             Ditolak
           </span>
@@ -130,17 +129,17 @@ export const UserJustificationsPage: React.FC = () => {
       {/* Header & Create Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
             Justifikasi Kehadiran
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-gray-500 mt-0.5">
             Penyerahan penjelasan bagi rekod kehadiran yang tidak lengkap atau kekurangan jam bertugas.
           </p>
         </div>
 
         <button
           onClick={() => setCreateModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-950 transition-all self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all self-start sm:self-auto active:scale-95"
         >
           <Plus className="w-4 h-4" />
           Cipta Justifikasi Baharu
@@ -148,43 +147,43 @@ export const UserJustificationsPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-2 text-xs font-semibold overflow-x-auto">
+      <div className="flex items-center gap-2 border-b border-gray-200 pb-2 text-xs font-semibold overflow-x-auto">
         <button
           onClick={() => setActiveTab('ALL')}
-          className={`px-3 py-1.5 rounded-xl transition-colors ${
+          className={`px-3 py-1.5 rounded-xl transition-colors whitespace-nowrap ${
             activeTab === 'ALL'
-              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold'
+              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
           }`}
         >
           Semua ({justifications.length})
         </button>
         <button
           onClick={() => setActiveTab('MENUNGGU_SEMAKAN')}
-          className={`px-3 py-1.5 rounded-xl transition-colors ${
+          className={`px-3 py-1.5 rounded-xl transition-colors whitespace-nowrap ${
             activeTab === 'MENUNGGU_SEMAKAN'
-              ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 font-bold'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-amber-50 text-amber-700 border border-amber-200 font-bold'
+              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
           }`}
         >
           Menunggu Semakan ({justifications.filter((j) => j.status === 'MENUNGGU_SEMAKAN').length})
         </button>
         <button
           onClick={() => setActiveTab('DILULUSKAN')}
-          className={`px-3 py-1.5 rounded-xl transition-colors ${
+          className={`px-3 py-1.5 rounded-xl transition-colors whitespace-nowrap ${
             activeTab === 'DILULUSKAN'
-              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold'
+              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
           }`}
         >
           Diluluskan ({justifications.filter((j) => j.status === 'DILULUSKAN' || j.status === 'DISAHKAN').length})
         </button>
         <button
           onClick={() => setActiveTab('DIKEMBALIKAN')}
-          className={`px-3 py-1.5 rounded-xl transition-colors ${
+          className={`px-3 py-1.5 rounded-xl transition-colors whitespace-nowrap ${
             activeTab === 'DIKEMBALIKAN'
-              ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30 font-bold'
-              : 'text-slate-400 hover:text-white'
+              ? 'bg-purple-50 text-purple-700 border border-purple-200 font-bold'
+              : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
           }`}
         >
           Dikembalikan ({justifications.filter((j) => j.status === 'DIKEMBALIKAN').length})
@@ -194,35 +193,36 @@ export const UserJustificationsPage: React.FC = () => {
       {/* Justifications List */}
       <div className="space-y-3">
         {filteredJustifications.length === 0 ? (
-          <div className="p-8 rounded-3xl bg-[#0b1322] border border-slate-800 text-center text-slate-500 text-xs">
-            Tiada rekod justifikasi dalam tab ini.
+          <div className="p-10 rounded-3xl bg-white border border-gray-200 text-center shadow-sm">
+            <FileText className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-gray-500 text-xs">Tiada rekod justifikasi dalam tab ini.</p>
           </div>
         ) : (
           filteredJustifications.map((j) => (
             <div
               key={j.id}
-              className="p-4 rounded-2xl bg-[#0b1322] border border-slate-800 hover:border-slate-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+              className="p-4 rounded-2xl bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3"
             >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sm text-white">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold text-sm text-gray-900">
                     {j.reason_category.replace(/_/g, ' ')}
                   </span>
                   {getStatusBadge(j.status)}
                 </div>
-                <div className="flex items-center gap-3 text-xs text-slate-400">
+                <div className="flex items-center gap-3 text-xs text-gray-500">
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                    Tarikh Kejadian: <strong className="text-slate-300">{j.date}</strong>
+                    <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                    Tarikh Kejadian: <strong className="text-gray-700">{j.date}</strong>
                   </span>
                   <span>•</span>
                   <span>Dihantar: {new Date(j.submitted_at).toLocaleDateString('ms-MY')}</span>
                 </div>
-                <p className="text-xs text-slate-300 line-clamp-1 italic">
+                <p className="text-xs text-gray-600 line-clamp-1 italic">
                   "{j.description}"
                 </p>
                 {j.review_remarks && (
-                  <p className="text-[11px] text-amber-300 bg-amber-950/40 border border-amber-900/60 px-2.5 py-1 rounded-lg mt-1">
+                  <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1.5 rounded-lg mt-1">
                     <strong>Catatan Admin:</strong> {j.review_remarks}
                   </p>
                 )}
@@ -231,7 +231,7 @@ export const UserJustificationsPage: React.FC = () => {
               <div className="flex items-center gap-2 self-end sm:self-auto">
                 <button
                   onClick={() => setViewModalItem(j)}
-                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                  className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   Lihat Perincian
@@ -244,16 +244,16 @@ export const UserJustificationsPage: React.FC = () => {
 
       {/* CREATE JUSTIFICATION MODAL */}
       {createModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-200 text-white">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-200 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
-                <h4 className="text-base font-bold text-white">Cipta Justifikasi Kehadiran</h4>
-                <p className="text-xs text-slate-400">Borang penjelasan rasmi kepada Admin Zon</p>
+                <h4 className="text-base font-bold text-gray-900">Cipta Justifikasi Kehadiran</h4>
+                <p className="text-xs text-gray-500">Borang penjelasan rasmi kepada Admin Zon</p>
               </div>
               <button
                 onClick={() => setCreateModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -261,13 +261,13 @@ export const UserJustificationsPage: React.FC = () => {
 
             <form onSubmit={handleSubmitJustification} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
+                <label className="block text-gray-700 font-semibold mb-1">
                   Kategori Justifikasi (9 Kategori Rasmi)
                 </label>
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-emerald-500 font-medium"
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium"
                 >
                   {categories.map((c) => (
                     <option key={c.value} value={c.value}>
@@ -279,29 +279,29 @@ export const UserJustificationsPage: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Tarikh Kejadian</label>
+                  <label className="block text-gray-700 font-semibold mb-1">Tarikh Kejadian</label>
                   <input
                     type="date"
                     required
                     value={incidentDate}
                     onChange={(e) => setIncidentDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Masa Terlibat</label>
+                  <label className="block text-gray-700 font-semibold mb-1">Masa Terlibat</label>
                   <input
                     type="time"
                     required
                     value={timeRelated}
                     onChange={(e) => setTimeRelated(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-emerald-500"
+                    className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
+                <label className="block text-gray-700 font-semibold mb-1">
                   Penjelasan Terperinci
                 </label>
                 <textarea
@@ -310,15 +310,15 @@ export const UserJustificationsPage: React.FC = () => {
                   value={reasonText}
                   onChange={(e) => setReasonText(e.target.value)}
                   placeholder="Nyatakan sebab ketidakhadiran, tugas rasmi atau masalah teknikal yang dihadapi secara terperinci..."
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-emerald-500 leading-relaxed"
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 leading-relaxed"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">
+                <label className="block text-gray-700 font-semibold mb-1">
                   Muat Naik Lampiran Sokongan (PDF, JPG, PNG)
                 </label>
-                <div className="border-2 border-dashed border-slate-800 rounded-xl p-3 text-center bg-slate-950/50 hover:border-emerald-500/50 transition-colors">
+                <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center bg-gray-50 hover:border-emerald-400 transition-colors">
                   <input
                     type="file"
                     id="justification-doc"
@@ -331,13 +331,13 @@ export const UserJustificationsPage: React.FC = () => {
                     }}
                   />
                   <label htmlFor="justification-doc" className="cursor-pointer">
-                    <Upload className="w-5 h-5 text-emerald-400 mx-auto mb-1" />
+                    <Upload className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
                     {attachedFileName ? (
-                      <span className="text-emerald-400 font-bold block truncate">
+                      <span className="text-emerald-700 font-bold block truncate">
                         {attachedFileName}
                       </span>
                     ) : (
-                      <span className="text-slate-400 block text-[11px]">
+                      <span className="text-gray-500 block text-[11px]">
                         Klik untuk memilih dokumen sokongan rasmi (cth: Surat Panggilan / Sijil Sakit)
                       </span>
                     )}
@@ -345,18 +345,18 @@ export const UserJustificationsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-800">
+              <div className="flex justify-end gap-2 pt-2 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setCreateModalOpen(false)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl"
+                  className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-950 flex items-center gap-1.5"
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-sm flex items-center gap-1.5 transition-colors active:scale-95"
                 >
                   <FileCheck className="w-4 h-4" />
                   Hantar Justifikasi
@@ -369,68 +369,68 @@ export const UserJustificationsPage: React.FC = () => {
 
       {/* VIEW JUSTIFICATION MODAL */}
       {viewModalItem && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl text-white">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
-                <h4 className="text-base font-bold text-white">Perincian Justifikasi</h4>
-                <p className="text-xs text-slate-400">ID: {viewModalItem.id}</p>
+                <h4 className="text-base font-bold text-gray-900">Perincian Justifikasi</h4>
+                <p className="text-xs text-gray-500">ID: {viewModalItem.id}</p>
               </div>
               <button
                 onClick={() => setViewModalItem(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2">
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Status Semakan:</span>
+                  <span className="text-gray-500 font-medium">Status Semakan:</span>
                   {getStatusBadge(viewModalItem.status)}
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Kategori:</span>
-                  <span className="font-semibold text-white">
+                  <span className="text-gray-500 font-medium">Kategori:</span>
+                  <span className="font-semibold text-gray-900">
                     {viewModalItem.reason_category.replace(/_/g, ' ')}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Tarikh Kejadian:</span>
-                  <span className="font-semibold text-white">{viewModalItem.date}</span>
+                  <span className="text-gray-500 font-medium">Tarikh Kejadian:</span>
+                  <span className="font-semibold text-gray-900">{viewModalItem.date}</span>
                 </div>
               </div>
 
               <div>
-                <label className="text-slate-400 block mb-1">Penjelasan Pemohon:</label>
-                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-slate-200 leading-relaxed italic">
+                <label className="text-gray-500 block mb-1 font-medium">Penjelasan Pemohon:</label>
+                <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 text-gray-700 leading-relaxed italic">
                   "{viewModalItem.description}"
                 </div>
               </div>
 
               {viewModalItem.review_remarks && (
                 <div>
-                  <label className="text-amber-400 block mb-1 font-semibold">
+                  <label className="text-amber-700 block mb-1 font-semibold">
                     Catatan Pegawai Pengesah (Admin Zon):
                   </label>
-                  <div className="p-3 bg-amber-950/40 rounded-xl border border-amber-900/60 text-amber-200 leading-relaxed">
+                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-800 leading-relaxed">
                     {viewModalItem.review_remarks}
                   </div>
                 </div>
               )}
 
               {viewModalItem.documents && viewModalItem.documents.length > 0 && (
-                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between">
-                  <span className="text-slate-400 flex items-center gap-1.5">
-                    <Paperclip className="w-4 h-4 text-emerald-400" />
+                <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 flex items-center justify-between">
+                  <span className="text-gray-600 flex items-center gap-1.5">
+                    <Paperclip className="w-4 h-4 text-emerald-600" />
                     {viewModalItem.documents[0].name}
                   </span>
                   <a
                     href={viewModalItem.documents[0].url}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-emerald-400 hover:underline font-bold text-[11px]"
+                    className="text-emerald-700 hover:underline font-bold text-[11px]"
                   >
                     Buka Dokumen
                   </a>
@@ -438,11 +438,11 @@ export const UserJustificationsPage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex justify-end pt-2 border-t border-slate-800">
+            <div className="flex justify-end pt-2 border-t border-gray-100">
               <button
                 type="button"
                 onClick={() => setViewModalItem(null)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold"
+                className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold transition-colors"
               >
                 Tutup
               </button>

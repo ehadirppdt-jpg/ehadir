@@ -385,53 +385,53 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full overflow-hidden shadow-2xl text-white animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4">
+      <div className="bg-white border border-gray-200 rounded-3xl max-w-md w-full overflow-hidden shadow-2xl text-gray-900 animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/80">
           <div className="flex items-center gap-2.5">
             <div
               className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm ${
                 actionType === 'IN'
-                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                  : 'bg-sky-500/20 text-sky-400 border border-sky-500/30'
+                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                  : 'bg-blue-50 text-blue-700 border border-blue-200'
               }`}
             >
               {actionType === 'IN' ? '→]' : '[→'}
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">
+              <h3 className="text-sm font-bold text-gray-900">
                 {actionType === 'IN' ? 'PENGESAHAN REKOD MASUK' : 'PENGESAHAN REKOD KELUAR'}
               </h3>
-              <p className="text-[11px] text-slate-400">Pengesahan Wajah Biometrik & Geofence GPS</p>
+              <p className="text-[11px] text-gray-500">Pengesahan Wajah Biometrik &amp; Geofence GPS</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition-colors"
+            className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* 5-Step Indicator Bar */}
-        <div className="px-6 py-3 bg-slate-950/40 border-b border-slate-800/80 flex items-center justify-between text-[11px] font-semibold text-slate-400">
-          <span className={currentStep === 'DEVICE' ? 'text-blue-400 font-bold' : ''}>1. Peranti</span>
+        <div className="px-6 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between text-[11px] font-semibold text-gray-400">
+          <span className={currentStep === 'DEVICE' ? 'text-blue-600 font-bold' : ''}>1. Peranti</span>
           <span>→</span>
-          <span className={currentStep === 'FACE' ? 'text-emerald-400 font-bold' : ''}>2. Wajah</span>
+          <span className={currentStep === 'FACE' ? 'text-emerald-600 font-bold' : ''}>2. Wajah</span>
           <span>→</span>
-          <span className={currentStep === 'GPS' ? 'text-sky-400 font-bold' : ''}>3. GPS</span>
+          <span className={currentStep === 'GPS' ? 'text-sky-600 font-bold' : ''}>3. GPS</span>
           <span>→</span>
-          <span className={currentStep === 'GEOFENCE' ? 'text-teal-400 font-bold' : ''}>4. Geofence</span>
+          <span className={currentStep === 'GEOFENCE' ? 'text-teal-600 font-bold' : ''}>4. Geofence</span>
           <span>→</span>
-          <span className={currentStep === 'SUBMIT' ? 'text-emerald-400 font-bold' : ''}>5. Sah</span>
+          <span className={currentStep === 'SUBMIT' ? 'text-emerald-600 font-bold' : ''}>5. Sah</span>
         </div>
 
         {/* Modal Body */}
         <div className="p-6">
           {errorMessage && (
-            <div className="mb-4 p-3 rounded-xl bg-rose-950/60 border border-rose-800/80 text-rose-300 text-xs flex items-start gap-2.5">
-              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
               <div>{errorMessage}</div>
             </div>
           )}
@@ -439,11 +439,11 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
           {/* STEP 1: DEVICE CHECK */}
           {currentStep === 'DEVICE' && (
             <div className="py-8 text-center space-y-3">
-              <div className="w-14 h-14 rounded-2xl bg-blue-500/20 border border-blue-500/30 text-blue-400 flex items-center justify-center mx-auto animate-pulse">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto animate-pulse">
                 <ShieldCheck className="w-7 h-7" />
               </div>
-              <h4 className="text-sm font-bold text-white">Menyemak Kesahan Peranti</h4>
-              <p className="text-xs text-slate-400 max-w-xs mx-auto">
+              <h4 className="text-sm font-bold text-gray-900">Menyemak Kesahan Peranti</h4>
+              <p className="text-xs text-gray-500 max-w-xs mx-auto">
                 Mengesahkan identiti peranti berdaftar PGB dengan pangkalan data PPD Tuaran...
               </p>
             </div>
@@ -453,16 +453,16 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
           {currentStep === 'FACE' && (
             <div className="space-y-4">
               <div className="text-center">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-600">
                   Langkah 2: Pengesahan Wajah
                 </span>
-                <p className="text-xs text-slate-300 mt-0.5">
+                <p className="text-xs text-gray-600 mt-0.5">
                   Pastikan wajah anda berada di dalam panduan bujur dan cahaya mencukupi.
                 </p>
               </div>
 
               {/* Video or Camera Container */}
-              <div className="relative w-full aspect-[4/3] bg-slate-950 rounded-2xl border-2 border-dashed border-emerald-500/40 overflow-hidden flex items-center justify-center">
+              <div className="relative w-full aspect-[4/3] bg-gray-900 rounded-2xl border-2 border-dashed border-emerald-500 overflow-hidden flex items-center justify-center shadow-inner">
                 {/* Video element always mounted so ref is attached immediately */}
                 <video
                   ref={videoRef}
@@ -480,12 +480,12 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
                 />
 
                 {!cameraActive && (
-                  <div className="flex flex-col items-center justify-center text-slate-400 gap-2 p-4 text-center">
+                  <div className="flex flex-col items-center justify-center text-gray-400 gap-2 p-4 text-center">
                     <ScanFace className="w-16 h-16 text-emerald-400/80 animate-pulse" />
-                    <p className="text-xs text-slate-300 font-medium">
+                    <p className="text-xs text-gray-200 font-medium">
                       Sensor Biometrik AI Aktif
                     </p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-[11px] text-gray-400">
                       {cameraPermission === false
                         ? 'Kamera tidak dapat diakses atau disekat oleh pelayar. Anda masih boleh mengimbas menggunakan simulasi biometrik AI.'
                         : 'Menghubungkan ke peranti kamera anda...'}
@@ -495,7 +495,7 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
 
                 {/* Face Oval Guideline Overlay */}
                 <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                  <div className="w-48 h-60 border-2 border-emerald-400/70 rounded-[50%] shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center">
+                  <div className="w-48 h-60 border-2 border-emerald-400/80 rounded-[50%] shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-center">
                     {isScanningFace && (
                       <div className="w-full h-1 bg-emerald-400 shadow-[0_0_12px_#34d399] animate-bounce" />
                     )}
@@ -503,7 +503,7 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
                 </div>
 
                 {/* Liveness Indicator */}
-                <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-sm border border-emerald-500/30 px-2.5 py-1 rounded-full text-[10px] font-semibold text-emerald-400 flex items-center gap-1.5">
+                <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm border border-emerald-500/40 px-2.5 py-1 rounded-full text-[10px] font-semibold text-emerald-300 flex items-center gap-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                   Pengesanan Hayat (Liveness) Aktif
                 </div>
@@ -515,7 +515,7 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
                   type="button"
                   onClick={handleCaptureFace}
                   disabled={isScanningFace}
-                  className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-950 flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all active:scale-95"
                 >
                   {isScanningFace ? (
                     <>
@@ -525,7 +525,7 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
                   ) : (
                     <>
                       <Camera className="w-4 h-4" />
-                      Imbas & Sahkan Wajah Sekarang
+                      Imbas &amp; Sahkan Wajah Sekarang
                     </>
                   )}
                 </button>
@@ -537,10 +537,10 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
           {(currentStep === 'GPS' || currentStep === 'GEOFENCE') && (
             <div className="space-y-4">
               <div className="text-center">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-sky-400">
-                  Langkah 3 & 4: Pengesahan Lokasi GPS & Geofence
+                <span className="text-[11px] font-bold uppercase tracking-wider text-blue-600">
+                  Langkah 3 &amp; 4: Pengesahan Lokasi GPS &amp; Geofence
                 </span>
-                <p className="text-xs text-slate-300 mt-0.5">
+                <p className="text-xs text-gray-600 mt-0.5">
                   Pilih lokasi kehadiran rasmi anda hari ini:
                 </p>
               </div>
@@ -555,15 +555,15 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
                   }}
                   className={`p-3 rounded-xl border text-left transition-all ${
                     selectedLocationType === 'SCHOOL'
-                      ? 'bg-blue-950/80 border-blue-500 text-white shadow-md'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                      ? 'bg-blue-50 border-2 border-blue-500 text-gray-900 shadow-sm'
+                      : 'bg-gray-50 border border-gray-200 text-gray-600 hover:border-gray-300'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <School className="w-4 h-4 text-blue-400" />
+                    <School className="w-4 h-4 text-blue-600" />
                     <span className="text-xs font-bold">Sekolah Anda</span>
                   </div>
-                  <p className="text-[10px] text-slate-300 truncate">{assignedSchool.name}</p>
+                  <p className="text-[10px] text-gray-500 truncate">{assignedSchool.name}</p>
                 </button>
 
                 <button
@@ -574,53 +574,53 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
                   }}
                   className={`p-3 rounded-xl border text-left transition-all ${
                     selectedLocationType === 'PPD'
-                      ? 'bg-blue-950/80 border-blue-500 text-white shadow-md'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                      ? 'bg-blue-50 border-2 border-blue-500 text-gray-900 shadow-sm'
+                      : 'bg-gray-50 border border-gray-200 text-gray-600 hover:border-gray-300'
                   }`}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <Building2 className="w-4 h-4 text-emerald-400" />
+                    <Building2 className="w-4 h-4 text-emerald-600" />
                     <span className="text-xs font-bold">PPD Tuaran</span>
                   </div>
-                  <p className="text-[10px] text-slate-300 truncate">Ibu Pejabat Rasmi</p>
+                  <p className="text-[10px] text-gray-500 truncate">Ibu Pejabat Rasmi</p>
                 </button>
               </div>
 
               {/* Status Box */}
               {geofenceResult && (
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2.5">
+                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] text-slate-400">Status Geofence:</span>
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-950 border border-emerald-600 text-emerald-400 flex items-center gap-1">
+                    <span className="text-[11px] text-gray-500">Status Geofence:</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center gap-1">
                       <Check className="w-3 h-3" />
                       LOKASI DIBENARKAN
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Lokasi:</span>
-                    <span className="font-semibold text-white truncate max-w-[200px]">
+                    <span className="text-gray-500">Lokasi:</span>
+                    <span className="font-semibold text-gray-900 truncate max-w-[200px]">
                       {geofenceResult.locationName}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Jarak Dari Pusat Radius:</span>
-                    <span className="font-semibold text-emerald-400">
+                    <span className="text-gray-500">Jarak Dari Pusat Radius:</span>
+                    <span className="font-semibold text-emerald-700">
                       {geofenceResult.distanceMeters} meter (Had: {geofenceResult.allowedRadius}m)
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Ketepatan GPS:</span>
-                    <span className="font-semibold text-slate-300">
+                    <span className="text-gray-500">Ketepatan GPS:</span>
+                    <span className="font-semibold text-gray-700">
                       ±{gpsLocation?.accuracy || 12} meter (Baik)
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800/80">
-                    <span className="text-slate-400">Pengesahan Wajah:</span>
-                    <span className="font-semibold text-emerald-400 flex items-center gap-1">
+                  <div className="flex items-center justify-between text-xs pt-2 border-t border-gray-200">
+                    <span className="text-gray-500">Pengesahan Wajah:</span>
+                    <span className="font-semibold text-emerald-700 flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       Padanan {faceScore || 98.4}%
                     </span>
@@ -630,12 +630,12 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
 
               {/* Warning Notice If Clocking Out Early Before 9 Hours */}
               {actionType === 'OUT' && shortfallMinutes > 0 && (
-                <div className="p-3.5 bg-amber-500/15 border border-amber-500/40 rounded-xl text-left space-y-1 mb-3">
-                  <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
-                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-left space-y-1 mb-3">
+                  <div className="flex items-center gap-2 text-amber-800 font-bold text-xs">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                     <span>Amaran: Kekurangan Jam Bekerja!</span>
                   </div>
-                  <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                  <p className="text-[11px] text-amber-700 leading-relaxed">
                     Tempoh bertugas anda adalah <strong>{Math.floor((540 - shortfallMinutes) / 60)}j {(540 - shortfallMinutes) % 60}m</strong>. Masa bertugas kurang <strong>{Math.floor(shortfallMinutes / 60)} jam {shortfallMinutes % 60} minit</strong> daripada ketetapan rasmi 9 jam (540 minit).
                     Rekod akan ditandakan sebagai <strong>TIDAK LENGKAP</strong> dan anda perlu menghantar justifikasi rasmi.
                   </p>
@@ -647,12 +647,12 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
                 type="button"
                 onClick={handleFinalSubmit}
                 disabled={isLoading}
-                className={`w-full py-3.5 font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all ${
+                className={`w-full py-3.5 font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all active:scale-95 ${
                   actionType === 'IN'
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-950'
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white'
                     : shortfallMinutes > 0
-                    ? 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white shadow-amber-950'
-                    : 'bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 text-white shadow-blue-950'
+                    ? 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white'
+                    : 'bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-700 hover:to-sky-700 text-white'
                 }`}
               >
                 {isLoading ? (
@@ -680,8 +680,8 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
               <div
                 className={`w-16 h-16 rounded-full border-2 flex items-center justify-center mx-auto animate-bounce ${
                   actionType === 'OUT' && shortfallMinutes > 0
-                    ? 'bg-amber-500/20 border-amber-500 text-amber-400'
-                    : 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                    ? 'bg-amber-50 border-amber-500 text-amber-600'
+                    : 'bg-emerald-50 border-emerald-500 text-emerald-600'
                 }`}
               >
                 {actionType === 'OUT' && shortfallMinutes > 0 ? (
@@ -690,14 +690,14 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
                   <CheckCircle2 className="w-8 h-8" />
                 )}
               </div>
-              <h4 className="text-base font-extrabold text-white">
+              <h4 className="text-base font-extrabold text-gray-900">
                 {actionType === 'IN'
                   ? 'REKOD MASUK BERJAYA DISAHKAN'
                   : shortfallMinutes > 0
                   ? 'REKOD KELUAR DISAHKAN (KEKURANGAN JAM)'
                   : 'REKOD KELUAR BERJAYA DISAHKAN'}
               </h4>
-              <p className="text-xs text-slate-300 max-w-xs mx-auto">
+              <p className="text-xs text-gray-600 max-w-xs mx-auto">
                 {actionType === 'IN'
                   ? 'Transaksi kehadiran anda telah disahkan melalui Biometrik Wajah dan Geofence GPS PPD Tuaran. Pemasa 9 jam bertugas kini bermula.'
                   : shortfallMinutes > 0

@@ -30,20 +30,12 @@ export const UserAttendanceHistoryPage: React.FC = () => {
 
   // Filter records
   const filteredRecords = records.filter((rec) => {
-    // Year filter
-    if (selectedYear !== 'ALL' && !rec.date.startsWith(selectedYear)) {
-      return false;
-    }
-    // Month filter
+    if (selectedYear !== 'ALL' && !rec.date.startsWith(selectedYear)) return false;
     if (selectedMonth !== 'ALL') {
       const monthStr = rec.date.substring(5, 7);
       if (monthStr !== selectedMonth) return false;
     }
-    // Status filter
-    if (selectedStatus !== 'ALL' && rec.status !== selectedStatus) {
-      return false;
-    }
-    // Search query
+    if (selectedStatus !== 'ALL' && rec.status !== selectedStatus) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchDate = rec.date.toLowerCase().includes(q);
@@ -99,7 +91,7 @@ export const UserAttendanceHistoryPage: React.FC = () => {
       subtitle: `Sekolah: ${user.school_name} | Kod: ${user.id} | Sasaran Bertugas: Minimum 9 Jam Sehari`,
       headers,
       rows,
-      fileName: `Laporan_Kehadiran_${user.full_name.replace(/\s+/g, '_')}_${selectedYear}.pdf`,
+      fileName: `sejarah-kehadiran-${user.id}-${new Date().toISOString().split('T')[0]}.pdf`,
     });
   };
 
@@ -108,17 +100,17 @@ export const UserAttendanceHistoryPage: React.FC = () => {
       {/* Title & Export */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
             Sejarah Kehadiran
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-gray-500 mt-0.5">
             Log lengkap rekod kehadiran PGB dengan pengesahan wajah biometrik dan koordinat GPS.
           </p>
         </div>
 
         <button
           onClick={handleExportPdf}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-950 transition-all self-start sm:self-auto"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all self-start sm:self-auto active:scale-95"
         >
           <Download className="w-4 h-4" />
           Eksport Penyata PDF
@@ -126,22 +118,22 @@ export const UserAttendanceHistoryPage: React.FC = () => {
       </div>
 
       {/* Filter Bar */}
-      <div className="p-4 rounded-2xl bg-[#0b1322] border border-slate-800 space-y-3">
-        <div className="flex items-center gap-2 text-xs font-bold text-slate-300">
-          <Filter className="w-4 h-4 text-emerald-400" />
-          <span>Tapis & Carian Rekod:</span>
+      <div className="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
+        <div className="flex items-center gap-2 text-xs font-bold text-gray-700">
+          <Filter className="w-4 h-4 text-emerald-600" />
+          <span>Tapis &amp; Carian Rekod:</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           {/* Search Date */}
           <div className="relative">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-3 pointer-events-none" />
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-3 pointer-events-none" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Cari tarikh (cth: 2026-11)..."
-              className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+              className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
             />
           </div>
 
@@ -149,7 +141,7 @@ export const UserAttendanceHistoryPage: React.FC = () => {
           <select
             value={selectedMonth}
             onChange={(e) => setSelectedMonth(e.target.value)}
-            className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
+            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
           >
             <option value="ALL">Semua Bulan</option>
             <option value="01">Januari</option>
@@ -170,7 +162,7 @@ export const UserAttendanceHistoryPage: React.FC = () => {
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
+            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
           >
             <option value="ALL">Semua Tahun</option>
             <option value="2026">2026</option>
@@ -181,7 +173,7 @@ export const UserAttendanceHistoryPage: React.FC = () => {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
+            className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
           >
             <option value="ALL">Semua Status</option>
             <option value="LENGKAP">Kehadiran Lengkap (9 Jam)</option>
@@ -193,12 +185,12 @@ export const UserAttendanceHistoryPage: React.FC = () => {
       </div>
 
       {/* History Table */}
-      <div className="bg-[#0b1322] border border-slate-800 rounded-3xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-950/80 border-b border-slate-800 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            <thead className="bg-gray-50 border-b border-gray-200 text-[11px] font-bold text-gray-500 uppercase tracking-wider">
               <tr>
-                <th className="py-3 px-4">Tarikh & Hari</th>
+                <th className="py-3 px-4">Tarikh &amp; Hari</th>
                 <th className="py-3 px-4">Waktu Masuk</th>
                 <th className="py-3 px-4">Waktu Keluar</th>
                 <th className="py-3 px-4">Jumlah Jam</th>
@@ -206,11 +198,14 @@ export const UserAttendanceHistoryPage: React.FC = () => {
                 <th className="py-3 px-4">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-medium">
+            <tbody className="divide-y divide-gray-100 font-medium">
               {filteredRecords.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-slate-500">
-                    Tiada rekod kehadiran yang sepadan dengan tapisan dipilih.
+                  <td colSpan={6} className="py-10 text-center text-gray-400">
+                    <div className="flex flex-col items-center gap-2">
+                      <Clock className="w-8 h-8 text-gray-300" />
+                      <span>Tiada rekod kehadiran yang sepadan dengan tapisan dipilih.</span>
+                    </div>
                   </td>
                 </tr>
               ) : (
@@ -220,32 +215,32 @@ export const UserAttendanceHistoryPage: React.FC = () => {
                   const dayName = daysMalay[d.getDay()];
 
                   return (
-                    <tr key={r.id} className="hover:bg-slate-900/40 transition-colors">
+                    <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                       <td className="py-3 px-4">
-                        <span className="font-bold text-white block">{r.date}</span>
-                        <span className="text-[10px] text-slate-400">{dayName}</span>
+                        <span className="font-bold text-gray-900 block">{r.date}</span>
+                        <span className="text-[10px] text-gray-400">{dayName}</span>
                       </td>
-                      <td className="py-3 px-4 text-emerald-400 font-semibold font-mono text-xs">
+                      <td className="py-3 px-4 text-emerald-600 font-semibold font-mono text-xs">
                         {formatLocalTime(r.clock_in_time)}
                       </td>
-                      <td className="py-3 px-4 text-sky-400 font-semibold font-mono text-xs">
+                      <td className="py-3 px-4 text-blue-600 font-semibold font-mono text-xs">
                         {formatLocalTime(r.clock_out_time)}
                       </td>
                       <td className="py-3 px-4">
-                        <span className="font-bold text-slate-200">
+                        <span className="font-bold text-gray-900">
                           {r.work_duration_minutes
                             ? `${Math.floor(r.work_duration_minutes / 60)}j ${r.work_duration_minutes % 60}m`
                             : '-'}
                         </span>
                         {r.shortfall_minutes ? (
-                          <span className="text-[10px] text-rose-400 block">
+                          <span className="text-[10px] text-rose-600 block font-semibold">
                             Kurang {r.shortfall_minutes} minit
                           </span>
                         ) : null}
                       </td>
                       <td className="py-3 px-4">
-                        <div className="flex items-center gap-1.5 text-slate-300">
-                          <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                        <div className="flex items-center gap-1.5 text-gray-600">
+                          <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                           <span className="truncate max-w-[150px]">
                             {r.location_name || user.school_name}
                           </span>
@@ -253,10 +248,10 @@ export const UserAttendanceHistoryPage: React.FC = () => {
                       </td>
                       <td className="py-3 px-4">
                         <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
                             r.status === 'LENGKAP'
-                              ? 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                              : 'bg-rose-950 text-rose-400 border border-rose-800'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
                           }`}
                         >
                           {r.status === 'LENGKAP' ? (

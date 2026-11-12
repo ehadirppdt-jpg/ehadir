@@ -37,37 +37,17 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
   const currentMonth = currentDate.getMonth(); // 0-indexed
 
   const malayMonths = [
-    'Januari',
-    'Februari',
-    'Mac',
-    'April',
-    'Mei',
-    'Jun',
-    'Julai',
-    'Ogos',
-    'September',
-    'Oktober',
-    'November',
-    'Disember',
+    'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun',
+    'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember',
   ];
 
   const malayDayNames = ['Ahad', 'Isnin', 'Selasa', 'Rabu', 'Khamis', 'Jumaat', 'Sabtu'];
 
-  // All attendance records for this user
   const allUserRecords = dbService.getUserAttendanceRecords(user.id);
   const holidays = dbService.getHolidayCalendar();
 
-  // Days in month calculation
-  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0 is Sunday
+  const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay();
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-  // Color legend specification:
-  // Green: Kehadiran Lengkap
-  // Red: Perlu Justifikasi
-  // Grey: Hujung Minggu
-  // Blue: Cuti Umum
-  // Purple: Cuti Sekolah
-  // Yellow: Menunggu Semakan
 
   const handlePrevMonth = () => {
     setCurrentDate(new Date(currentYear, currentMonth - 1, 1));
@@ -77,22 +57,17 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
     setCurrentDate(new Date(currentYear, currentMonth + 1, 1));
   };
 
-  // Calendar day generator
   const calendarCells = [];
-  // Empty cells before the 1st
   for (let i = 0; i < firstDayOfMonth; i++) {
     calendarCells.push(null);
   }
-  // Days of month
   for (let day = 1; day <= daysInMonth; day++) {
     const dayDate = new Date(currentYear, currentMonth, day);
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const dayOfWeek = dayDate.getDay();
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // Sunday or Saturday
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-    // Check holiday
     const holiday = holidays.find((h) => h.holiday_date === dateStr);
-    // Check attendance record
     const attendance = allUserRecords.find((r) => r.date === dateStr);
 
     let statusType: 'GREEN' | 'RED' | 'GREY' | 'BLUE' | 'PURPLE' | 'YELLOW' | 'DEFAULT' = 'DEFAULT';
@@ -100,57 +75,43 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
     if (isWeekend) {
       statusType = 'GREY';
     } else if (holiday) {
-      if (holiday.type === 'SCHOOL_TERM') {
-        statusType = 'PURPLE';
-      } else {
-        statusType = 'BLUE';
-      }
+      statusType = holiday.type === 'SCHOOL_TERM' ? 'PURPLE' : 'BLUE';
     } else if (attendance) {
       if (attendance.status === 'LENGKAP') {
         statusType = 'GREEN';
-      } else if (attendance.status === 'TIDAK_LENGKAP' || attendance.status === 'PERLU_JUSTIFIKASI' || attendance.status === 'LEWAT') {
+      } else if (
+        attendance.status === 'TIDAK_LENGKAP' ||
+        attendance.status === 'PERLU_JUSTIFIKASI' ||
+        attendance.status === 'LEWAT'
+      ) {
         statusType = 'RED';
       } else {
         statusType = 'YELLOW';
       }
     } else {
-      // Future or past missing
       const isPast = dayDate < new Date();
-      if (isPast) {
-        statusType = 'RED'; // Needs justification
-      } else {
-        statusType = 'DEFAULT';
-      }
+      statusType = isPast ? 'RED' : 'DEFAULT';
     }
 
-    calendarCells.push({
-      day,
-      dateStr,
-      dayDate,
-      isWeekend,
-      holiday,
-      attendance,
-      statusType,
-      dayName: malayDayNames[dayOfWeek],
-    });
+    calendarCells.push({ day, dateStr, dayDate, isWeekend, holiday, attendance, statusType, dayName: malayDayNames[dayOfWeek] });
   }
 
   const getStatusColorClass = (type: string) => {
     switch (type) {
       case 'GREEN':
-        return 'bg-emerald-950/70 border-emerald-500/50 text-emerald-400 hover:border-emerald-400';
+        return 'bg-emerald-50 border-emerald-300 text-emerald-700 hover:border-emerald-500 hover:shadow-sm';
       case 'RED':
-        return 'bg-rose-950/70 border-rose-500/50 text-rose-400 hover:border-rose-400';
+        return 'bg-rose-50 border-rose-300 text-rose-700 hover:border-rose-500 hover:shadow-sm';
       case 'GREY':
-        return 'bg-slate-900/40 border-slate-800 text-slate-500 hover:border-slate-700';
+        return 'bg-gray-100 border-gray-200 text-gray-400 hover:border-gray-300';
       case 'BLUE':
-        return 'bg-sky-950/70 border-sky-500/50 text-sky-400 hover:border-sky-400';
+        return 'bg-blue-50 border-blue-300 text-blue-700 hover:border-blue-500 hover:shadow-sm';
       case 'PURPLE':
-        return 'bg-purple-950/70 border-purple-500/50 text-purple-400 hover:border-purple-400';
+        return 'bg-purple-50 border-purple-300 text-purple-700 hover:border-purple-500 hover:shadow-sm';
       case 'YELLOW':
-        return 'bg-amber-950/70 border-amber-500/50 text-amber-400 hover:border-amber-400';
+        return 'bg-amber-50 border-amber-300 text-amber-700 hover:border-amber-500 hover:shadow-sm';
       default:
-        return 'bg-slate-900 border-slate-800 text-slate-400 hover:border-slate-700';
+        return 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:shadow-sm';
     }
   };
 
@@ -159,28 +120,28 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
       {/* Title & Month Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
             Kalendar Kehadiran
           </h2>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-gray-500 mt-0.5">
             Pemantauan harian mengikut piawaian waktu bertugas minimum 9 jam (540 minit).
           </p>
         </div>
 
         {/* Month Selector */}
-        <div className="flex items-center gap-2 bg-slate-900 border border-slate-800 p-1.5 rounded-2xl shadow-sm self-start sm:self-auto">
+        <div className="flex items-center gap-2 bg-white border border-gray-200 p-1.5 rounded-2xl shadow-sm self-start sm:self-auto">
           <button
             onClick={handlePrevMonth}
-            className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <span className="text-xs font-bold text-white px-3 min-w-[140px] text-center">
+          <span className="text-xs font-bold text-gray-900 px-3 min-w-[140px] text-center">
             {malayMonths[currentMonth]} {currentYear}
           </span>
           <button
             onClick={handleNextMonth}
-            className="p-1.5 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -188,47 +149,47 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
       </div>
 
       {/* Official Color Legend Bar */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5">
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
+      <div className="bg-white border border-gray-200 rounded-2xl p-3.5 shadow-sm">
+        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2">
           Petunjuk Status Kalendar Rasmi:
         </span>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-[11px] font-medium">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-md bg-emerald-500" />
-            <span className="text-slate-300">Kehadiran Lengkap</span>
+            <span className="w-3 h-3 rounded-md bg-emerald-500 shrink-0" />
+            <span className="text-gray-700">Kehadiran Lengkap</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-md bg-rose-500" />
-            <span className="text-slate-300">Perlu Justifikasi</span>
+            <span className="w-3 h-3 rounded-md bg-rose-500 shrink-0" />
+            <span className="text-gray-700">Perlu Justifikasi</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-md bg-amber-500" />
-            <span className="text-slate-300">Menunggu Semakan</span>
+            <span className="w-3 h-3 rounded-md bg-amber-500 shrink-0" />
+            <span className="text-gray-700">Menunggu Semakan</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-md bg-sky-500" />
-            <span className="text-slate-300">Cuti Umum</span>
+            <span className="w-3 h-3 rounded-md bg-blue-500 shrink-0" />
+            <span className="text-gray-700">Cuti Umum</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-md bg-purple-500" />
-            <span className="text-slate-300">Cuti Sekolah</span>
+            <span className="w-3 h-3 rounded-md bg-purple-500 shrink-0" />
+            <span className="text-gray-700">Cuti Sekolah</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 rounded-md bg-slate-600" />
-            <span className="text-slate-300">Hujung Minggu</span>
+            <span className="w-3 h-3 rounded-md bg-gray-400 shrink-0" />
+            <span className="text-gray-700">Hujung Minggu</span>
           </div>
         </div>
       </div>
 
       {/* Main Calendar Grid */}
-      <div className="bg-[#0b1322] border border-slate-800 rounded-3xl p-4 sm:p-6 shadow-xl">
+      <div className="bg-white border border-gray-200 rounded-3xl p-4 sm:p-6 shadow-sm">
         {/* Days of week header */}
         <div className="grid grid-cols-7 gap-2 mb-3 text-center">
           {['Ahd', 'Isn', 'Sel', 'Rab', 'Kha', 'Jum', 'Sab'].map((d, idx) => (
             <div
               key={d}
               className={`text-xs font-bold py-1.5 uppercase tracking-wider ${
-                idx === 0 || idx === 6 ? 'text-slate-500' : 'text-slate-300'
+                idx === 0 || idx === 6 ? 'text-gray-400' : 'text-gray-600'
               }`}
             >
               {d}
@@ -243,7 +204,7 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
               return (
                 <div
                   key={`empty-${idx}`}
-                  className="aspect-square rounded-2xl bg-slate-950/20 border border-transparent"
+                  className="aspect-square rounded-2xl bg-gray-50 border border-transparent"
                 />
               );
             }
@@ -255,21 +216,14 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
               <button
                 key={dateStr}
                 onClick={() =>
-                  setSelectedDayRecord({
-                    dateStr,
-                    dayNum: day,
-                    dayName,
-                    attendance,
-                    holiday,
-                    isWeekend,
-                  })
+                  setSelectedDayRecord({ dateStr, dayNum: day, dayName, attendance, holiday, isWeekend })
                 }
                 className={`aspect-square rounded-2xl border p-1.5 sm:p-2.5 text-left flex flex-col justify-between transition-all active:scale-95 ${colorClass}`}
               >
                 <div className="flex items-center justify-between w-full">
                   <span className="text-xs sm:text-sm font-extrabold">{day}</span>
                   {attendance?.status === 'LENGKAP' && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   )}
                 </div>
 
@@ -281,7 +235,7 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
                       {attendance.clock_in_time} - {attendance.clock_out_time || '...'}
                     </span>
                   ) : isWeekend ? (
-                    <span className="text-slate-600 block">Rehat</span>
+                    <span className="text-gray-400 block">Rehat</span>
                   ) : (
                     <span className="opacity-70 block">Tiada rekod</span>
                   )}
@@ -292,20 +246,20 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
         </div>
       </div>
 
-      {/* Selected Day Details Modal / Drawer */}
+      {/* Selected Day Details Modal */}
       {selectedDayRecord && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 bg-gray-900/60 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="bg-white border border-gray-200 rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <div>
-                <h4 className="text-base font-bold text-white">
+                <h4 className="text-base font-bold text-gray-900">
                   {selectedDayRecord.dayName}, {selectedDayRecord.dayNum} {malayMonths[currentMonth]} {currentYear}
                 </h4>
-                <p className="text-xs text-slate-400">Perincian Transaksi Kehadiran Harian</p>
+                <p className="text-xs text-gray-500">Perincian Transaksi Kehadiran Harian</p>
               </div>
               <button
                 onClick={() => setSelectedDayRecord(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center"
+                className="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:text-gray-900 flex items-center justify-center transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -314,14 +268,14 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
             {/* Attendance Details */}
             {selectedDayRecord.attendance ? (
               <div className="space-y-3">
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-2.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Status Kehadiran:</span>
+                    <span className="text-gray-500 font-medium">Status Kehadiran:</span>
                     <span
-                      className={`font-bold px-2 py-0.5 rounded-full text-[11px] ${
+                      className={`font-bold px-2.5 py-1 rounded-full text-[11px] ${
                         selectedDayRecord.attendance.status === 'LENGKAP'
-                          ? 'bg-emerald-950 text-emerald-400 border border-emerald-600'
-                          : 'bg-rose-950 text-rose-400 border border-rose-600'
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
                       }`}
                     >
                       {selectedDayRecord.attendance.status}
@@ -329,22 +283,22 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Waktu Masuk:</span>
-                    <span className="font-semibold text-white">
+                    <span className="text-gray-500 font-medium">Waktu Masuk:</span>
+                    <span className="font-semibold text-gray-900">
                       {selectedDayRecord.attendance.clock_in_time || '-'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Waktu Keluar:</span>
-                    <span className="font-semibold text-white">
+                    <span className="text-gray-500 font-medium">Waktu Keluar:</span>
+                    <span className="font-semibold text-gray-900">
                       {selectedDayRecord.attendance.clock_out_time || '-'}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Jumlah Tempoh Bertugas:</span>
-                    <span className="font-bold text-emerald-400">
+                    <span className="text-gray-500 font-medium">Jumlah Tempoh Bertugas:</span>
+                    <span className="font-bold text-emerald-700">
                       {selectedDayRecord.attendance.work_duration_minutes
                         ? `${Math.floor(selectedDayRecord.attendance.work_duration_minutes / 60)}j ${selectedDayRecord.attendance.work_duration_minutes % 60}m`
                         : '-'}
@@ -352,28 +306,27 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
                   </div>
 
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-400">Kekurangan Jam:</span>
-                    <span className="font-semibold text-rose-400">
+                    <span className="text-gray-500 font-medium">Kekurangan Jam:</span>
+                    <span className="font-semibold text-rose-600">
                       {selectedDayRecord.attendance.shortfall_minutes || 0} minit
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800">
-                    <span className="text-slate-400">Lokasi:</span>
-                    <span className="font-medium text-slate-300 truncate max-w-[180px]">
+                  <div className="flex items-center justify-between text-xs pt-2 border-t border-gray-200">
+                    <span className="text-gray-500 font-medium">Lokasi:</span>
+                    <span className="font-medium text-gray-700 truncate max-w-[180px]">
                       {selectedDayRecord.attendance.location_name}
                     </span>
                   </div>
                 </div>
 
-                {/* Justification action if needed */}
                 {selectedDayRecord.attendance.status !== 'LENGKAP' && (
                   <button
                     onClick={() => {
                       setSelectedDayRecord(null);
                       onNavigate('/user/justifications');
                     }}
-                    className="w-full py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-colors"
+                    className="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-colors active:scale-95"
                   >
                     <FileText className="w-4 h-4" />
                     Hantar Justifikasi Bagi Tarikh Ini
@@ -381,21 +334,21 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
                 )}
               </div>
             ) : selectedDayRecord.holiday ? (
-              <div className="p-4 rounded-2xl bg-sky-950/50 border border-sky-800/80 text-center space-y-2">
-                <Info className="w-8 h-8 text-sky-400 mx-auto" />
-                <h5 className="text-sm font-bold text-white">{selectedDayRecord.holiday.name}</h5>
-                <p className="text-xs text-slate-300">
+              <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-center space-y-2">
+                <Info className="w-8 h-8 text-blue-600 mx-auto" />
+                <h5 className="text-sm font-bold text-gray-900">{selectedDayRecord.holiday.name}</h5>
+                <p className="text-xs text-gray-600">
                   {selectedDayRecord.holiday.description || 'Hari Kelepasan Rasmi Daerah Tuaran'}
                 </p>
               </div>
             ) : selectedDayRecord.isWeekend ? (
-              <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 text-center text-xs text-slate-400">
+              <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 text-center text-xs text-gray-500">
                 Hujung minggu (Hari kelepasan mingguan)
               </div>
             ) : (
-              <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-900/60 text-center space-y-3">
-                <AlertCircle className="w-7 h-7 text-rose-400 mx-auto" />
-                <p className="text-xs text-rose-200">
+              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-center space-y-3">
+                <AlertCircle className="w-7 h-7 text-rose-500 mx-auto" />
+                <p className="text-xs text-rose-700">
                   Tiada rekod kehadiran direkodkan bagi hari bekerja ini.
                 </p>
                 <button
@@ -403,7 +356,7 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
                     setSelectedDayRecord(null);
                     onNavigate('/user/justifications');
                   }}
-                  className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-bold text-xs transition-colors"
+                  className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold text-xs transition-colors active:scale-95"
                 >
                   Hantar Justifikasi Ketidakhadiran
                 </button>

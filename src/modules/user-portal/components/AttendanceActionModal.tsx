@@ -43,6 +43,7 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
 
   // Biometric state
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
   const [faceVerified, setFaceVerified] = useState(false);
@@ -98,6 +99,25 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
     };
   }, []);
 
+  // Auto start camera when entering FACE step
+  useEffect(() => {
+    if (isOpen && currentStep === 'FACE') {
+      startCamera();
+    }
+  }, [isOpen, currentStep]);
+
+  // Bind video stream whenever video element or stream is updated
+  useEffect(() => {
+    if (currentStep === 'FACE' && videoRef.current && streamRef.current) {
+      if (videoRef.current.srcObject !== streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+      }
+      videoRef.current.play().catch((e) => {
+        console.warn('Video auto-play delayed until interaction:', e);
+      });
+    }
+  }, [currentStep, cameraActive]);
+
   const runDeviceCheck = async () => {
     setIsLoading(true);
     await new Promise((r) => setTimeout(r, 600));
@@ -111,7 +131,6 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
     }
     setIsLoading(false);
     setCurrentStep('FACE');
-    startCamera();
   };
 
   const startCamera = async () => {
@@ -119,28 +138,46 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+          video: {
+            facingMode: 'user',
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+          },
+          audio: false,
         });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-        }
+
+        streamRef.current = stream;
         setCameraActive(true);
         setCameraPermission(true);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          try {
+            await videoRef.current.play();
+          } catch (pErr) {
+            console.warn('Playback play() notice:', pErr);
+          }
+        }
       } else {
-        // Fallback for non-supported browsers or simulators
         setCameraPermission(false);
+        setCameraActive(false);
       }
     } catch (err: any) {
-      console.warn('Camera access unavailable, simulation mode enabled:', err);
+      console.warn('Camera access notice:', err);
       setCameraPermission(false);
+      setCameraActive(false);
+      if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+        setErrorMessage('Akses kamera disekat oleh pelayar. Sila benarkan akses kamera pada bar alamat URL anda.');
+      }
     }
   };
 
   const stopCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach((track) => track.stop());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
     setCameraActive(false);
@@ -400,22 +437,32 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
 
               {/* Video or Camera Container */}
               <div className="relative w-full aspect-[4/3] bg-slate-950 rounded-2xl border-2 border-dashed border-emerald-500/40 overflow-hidden flex items-center justify-center">
-                {cameraActive ? (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover transform -scale-x-100"
-                  />
-                ) : (
+                {/* Video element always mounted so ref is attached immediately */}
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  onLoadedMetadata={() => {
+                    if (videoRef.current) {
+                      videoRef.current.play().catch(() => {});
+                    }
+                  }}
+                  className={`w-full h-full object-cover transform -scale-x-100 ${
+                    cameraActive ? 'block' : 'hidden'
+                  }`}
+                />
+
+                {!cameraActive && (
                   <div className="flex flex-col items-center justify-center text-slate-400 gap-2 p-4 text-center">
                     <ScanFace className="w-16 h-16 text-emerald-400/80 animate-pulse" />
                     <p className="text-xs text-slate-300 font-medium">
                       Sensor Biometrik AI Aktif
                     </p>
                     <p className="text-[11px] text-slate-500">
-                      Sistem bersedia memadankan ciri biometrik dengan profil pendaftaran PGB.
+                      {cameraPermission === false
+                        ? 'Kamera tidak dapat diakses atau disekat oleh pelayar. Anda masih boleh mengimbas menggunakan simulasi biometrik AI.'
+                        : 'Menghubungkan ke peranti kamera anda...'}
                     </p>
                   </div>
                 )}

@@ -39,12 +39,23 @@ export const AdminManagementPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const adminUsers = useMemo(() => {
-    return users.filter((u) => u.role !== 'PGB');
+    return users.filter(
+      (u) =>
+        u.role !== 'PGB' &&
+        u.email?.toLowerCase() !== 'probe@test.com' &&
+        !u.email?.toLowerCase()?.includes('probe')
+    );
   }, [users]);
 
   useEffect(() => {
     dbService.syncUsersFromSupabase().then((synced) => {
-      setUsers(synced);
+      setUsers(
+        synced.filter(
+          (u) =>
+            u.email?.toLowerCase() !== 'probe@test.com' &&
+            !u.email?.toLowerCase()?.includes('probe')
+        )
+      );
     });
   }, []);
 
@@ -134,10 +145,12 @@ export const AdminManagementPage: React.FC = () => {
       try {
         dbService.deleteUser(targetAdmin.id, user);
         showToast(`Pentadbir ${targetAdmin.full_name} berjaya dipadam.`, 'success');
-        setUsers(dbService.getUsers());
       } catch (err: any) {
         showToast(err.message || 'Gagal memadam pentadbir.', 'error');
       }
+      setUsers((prev) =>
+        prev.filter((u) => u.id !== targetAdmin.id && u.email !== targetAdmin.email)
+      );
     }
   };
 

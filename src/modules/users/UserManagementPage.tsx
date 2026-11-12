@@ -49,7 +49,7 @@ export const UserManagementPage: React.FC = () => {
 
   useEffect(() => {
     dbService.syncUsersFromSupabase().then((synced) => {
-      setUsers(synced);
+      setUsers(synced.filter((u) => !u.email?.toLowerCase()?.includes('probe')));
     });
   }, []);
 

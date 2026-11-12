@@ -166,7 +166,7 @@ export const INITIAL_JUSTIFICATIONS: Justification[] = [];
 function loadFromStorage<T>(key: string, defaultData: T): T {
   try {
     // Purge legacy demo seed data from browser localStorage on first run
-    const purgeFlag = 'ehadir_purge_v7_clean_schools';
+    const purgeFlag = 'ehadir_purge_v8_purge_probe';
     if (!localStorage.getItem(purgeFlag)) {
       const rawUsers = localStorage.getItem('ehadir_users');
       if (rawUsers) {
@@ -174,7 +174,7 @@ function loadFromStorage<T>(key: string, defaultData: T): T {
           const parsed = JSON.parse(rawUsers);
           if (Array.isArray(parsed)) {
             const superAdmins = parsed.filter(
-              (u: any) => u.role === 'SUPER_ADMIN' && u.email !== 'probe@test.com'
+              (u: any) => u.role === 'SUPER_ADMIN' && !u.email?.toLowerCase()?.includes('probe')
             );
             localStorage.setItem('ehadir_users', JSON.stringify(superAdmins));
           } else {
@@ -197,7 +197,18 @@ function loadFromStorage<T>(key: string, defaultData: T): T {
     }
 
     const item = localStorage.getItem(`ehadir_${key}`);
-    return item ? JSON.parse(item) : defaultData;
+    if (item) {
+      const parsed = JSON.parse(item);
+      if (key === 'users' && Array.isArray(parsed)) {
+        return parsed.filter(
+          (u: any) =>
+            u.email?.toLowerCase() !== 'probe@test.com' &&
+            !u.email?.toLowerCase()?.includes('probe@')
+        ) as T;
+      }
+      return parsed;
+    }
+    return defaultData;
   } catch (e) {
     console.error(`Error reading ${key} from storage:`, e);
     return defaultData;
@@ -662,9 +673,21 @@ export const dbService = {
       if (data && !error && data.length > 0) {
         const current = this.getUsers();
         const mergedMap = new Map<string, UserProfile>();
-        current.forEach((u) => mergedMap.set(u.id, u));
+        current.forEach((u) => {
+          if (u.email?.toLowerCase() !== 'probe@test.com' && !u.email?.toLowerCase()?.includes('probe@')) {
+            mergedMap.set(u.id, u);
+          }
+        });
 
         data.forEach((p: any) => {
+          const emailLower = (p.email || '').toLowerCase();
+          if (emailLower === 'probe@test.com' || emailLower.includes('probe@')) {
+            // Delete probe test account from Supabase profiles immediately
+            Promise.resolve(supabase.from('profiles').delete().eq('id', p.id)).catch(() => {});
+            Promise.resolve(supabase.from('profiles').delete().eq('email', p.email)).catch(() => {});
+            return;
+          }
+
           mergedMap.set(p.id, {
             id: p.id,
             full_name: p.full_name || 'Pentadbir',
@@ -683,7 +706,9 @@ export const dbService = {
           });
         });
 
-        const mergedList = Array.from(mergedMap.values());
+        const mergedList = Array.from(mergedMap.values()).filter(
+          (u) => u.email?.toLowerCase() !== 'probe@test.com' && !u.email?.toLowerCase()?.includes('probe@')
+        );
         saveToStorage('users', mergedList);
         return mergedList;
       }
@@ -816,23 +841,32 @@ export const dbService = {
   },
 
   deleteUser(id: string, actor: UserProfile): { success: boolean; message: string } {
+    const rawUsers = loadFromStorage<UserProfile[]>('users', []);
     const users = this.getUsers();
-    const targetUser = users.find((u) => u.id === id);
-    if (!targetUser) throw new Error('Pengguna tidak dijumpai.');
+    const targetUser =
+      users.find((u) => u.id === id || u.email?.toLowerCase() === id.toLowerCase()) ||
+      rawUsers.find((u) => u.id === id || u.email?.toLowerCase() === id.toLowerCase());
 
-    if (targetUser.role === 'SUPER_ADMIN' && targetUser.id === actor.id) {
+    if (targetUser && targetUser.role === 'SUPER_ADMIN' && targetUser.id === actor.id) {
       throw new Error('Akaun Super Admin yang sedang aktif tidak boleh dipadam.');
     }
 
-    const remaining = users.filter((u) => u.id !== id);
+    const remaining = rawUsers.filter(
+      (u) =>
+        u.id !== id &&
+        u.email?.toLowerCase() !== id.toLowerCase() &&
+        (!targetUser || u.email?.toLowerCase() !== targetUser.email?.toLowerCase())
+    );
     saveToStorage('users', remaining);
 
     if (isSupabaseConfigured) {
-      Promise.resolve(supabase.from('profiles').delete().eq('id', id))
-        .then((res: any) => {
-          if (res?.error) console.warn('Supabase delete profile notice:', res.error.message);
-        })
-        .catch((err: any) => console.warn('Supabase delete profile error:', err));
+      Promise.resolve(supabase.from('profiles').delete().eq('id', id)).catch(() => {});
+      if (targetUser?.email) {
+        Promise.resolve(supabase.from('profiles').delete().eq('email', targetUser.email)).catch(() => {});
+      }
+      if (id === 'probe@test.com' || targetUser?.email === 'probe@test.com' || id.includes('probe')) {
+        Promise.resolve(supabase.from('profiles').delete().eq('email', 'probe@test.com')).catch(() => {});
+      }
     }
 
     logAuditEvent({
@@ -843,10 +877,13 @@ export const dbService = {
       entity: 'PENGGUNA',
       record_id: id,
       old_values: targetUser,
-      remarks: `Memadam pengguna: ${targetUser.full_name} (${targetUser.role} - ${targetUser.email})`,
+      remarks: `Memadam akaun: ${targetUser?.full_name || id}`,
     });
 
-    return { success: true, message: `Akaun ${targetUser.full_name} berjaya dipadam.` };
+    return {
+      success: true,
+      message: `Akaun ${targetUser?.full_name || id} berjaya dipadam.`,
+    };
   },
 
   deleteAllNonSuperAdmins(actor: UserProfile): { deletedCount: number; message: string } {

@@ -350,9 +350,14 @@ export const dbService = {
       throw new Error(`Kod sekolah ${data.code} sudah wujud dalam sistem!`);
     }
 
+    const generatedSchoolId =
+      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+        ? crypto.randomUUID()
+        : `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, '0')}`;
+
     const newSchool: School = {
       ...data,
-      id: `sch-${Date.now().toString(36)}`,
+      id: generatedSchoolId,
       code: data.code.toUpperCase(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
@@ -417,27 +422,29 @@ export const dbService = {
     saveToStorage('schools', schools);
 
     if (isSupabaseConfigured) {
+      const payload = {
+        code: updatedSchool.code,
+        name: updatedSchool.name,
+        category: updatedSchool.category,
+        address: updatedSchool.address || null,
+        postal_code: updatedSchool.postal_code || null,
+        phone: updatedSchool.phone || null,
+        email: updatedSchool.email || null,
+        latitude: updatedSchool.latitude,
+        longitude: updatedSchool.longitude,
+        geofence_radius_meters: updatedSchool.geofence_radius_meters,
+        status: updatedSchool.status,
+        zone_id: updatedSchool.zone_id || null,
+        zone_name: updatedSchool.zone_name || null,
+        zone_code: updatedSchool.zone_code || null,
+        updated_at: updatedSchool.updated_at,
+      };
+
+      // Use upsert with onConflict: 'code' so it inserts if not found in Supabase
       Promise.resolve(
         supabase
           .from('schools')
-          .update({
-            code: updatedSchool.code,
-            name: updatedSchool.name,
-            category: updatedSchool.category,
-            address: updatedSchool.address || null,
-            postal_code: updatedSchool.postal_code || null,
-            phone: updatedSchool.phone || null,
-            email: updatedSchool.email || null,
-            latitude: updatedSchool.latitude,
-            longitude: updatedSchool.longitude,
-            geofence_radius_meters: updatedSchool.geofence_radius_meters,
-            status: updatedSchool.status,
-            zone_id: updatedSchool.zone_id || null,
-            zone_name: updatedSchool.zone_name || null,
-            zone_code: updatedSchool.zone_code || null,
-            updated_at: updatedSchool.updated_at,
-          })
-          .eq('id', id)
+          .upsert([payload], { onConflict: 'code' })
       ).catch(() => {});
     }
 
@@ -741,33 +748,78 @@ export const dbService = {
 
     // Sync to Supabase if configured
     if (isSupabaseConfigured) {
-      Promise.resolve(
-        supabase.from('profiles').upsert([
-          {
-            id: newUser.id,
-            full_name: newUser.full_name,
-            ic_no: newUser.ic_no,
-            position: newUser.position,
+      // 1) Create Supabase Auth account so PGB/admin can login with password
+      if (data.password) {
+        Promise.resolve(
+          supabase.auth.signUp({
             email: newUser.email,
-            phone_number: newUser.phone_number || null,
-            status: newUser.status,
-            role: newUser.role,
-            assigned_school_id: newUser.assigned_school_id || null,
-            school_name: newUser.school_name || null,
-            assigned_zone_ids: newUser.assigned_zone_ids || null,
-            created_at: newUser.created_at,
-            updated_at: newUser.updated_at,
-          },
-        ])
-      )
-        .then((res: any) => {
-          if (res?.error) {
-            console.warn('Supabase profile upsert notice:', res.error.message);
-          }
-        })
-        .catch((err: any) => {
-          console.warn('Supabase upsert error:', err);
-        });
+            password: data.password,
+            options: {
+              data: {
+                full_name: newUser.full_name,
+                role: newUser.role,
+                position: newUser.position,
+              },
+            },
+          })
+        )
+          .then(({ data: authData, error: authErr }: any) => {
+            if (authErr) {
+              console.warn('Supabase Auth signUp notice:', authErr.message);
+            }
+            // 2) Upsert profile row (may already exist via trigger)
+            const profileId = authData?.user?.id || newUser.id;
+            return supabase.from('profiles').upsert([
+              {
+                id: profileId,
+                full_name: newUser.full_name,
+                ic_no: newUser.ic_no,
+                position: newUser.position,
+                email: newUser.email,
+                phone_number: newUser.phone_number || null,
+                status: newUser.status,
+                role: newUser.role,
+                assigned_school_id: newUser.assigned_school_id || null,
+                school_name: newUser.school_name || null,
+                assigned_zone_ids: newUser.assigned_zone_ids || null,
+                created_at: newUser.created_at,
+                updated_at: newUser.updated_at,
+              },
+            ]);
+          })
+          .catch((err: any) => {
+            console.warn('Supabase Auth/profile error:', err);
+          });
+      } else {
+        // No password — just upsert profile row (login via admin portal only)
+        Promise.resolve(
+          supabase.from('profiles').upsert([
+            {
+              id: newUser.id,
+              full_name: newUser.full_name,
+              ic_no: newUser.ic_no,
+              position: newUser.position,
+              email: newUser.email,
+              phone_number: newUser.phone_number || null,
+              status: newUser.status,
+              role: newUser.role,
+              assigned_school_id: newUser.assigned_school_id || null,
+              school_name: newUser.school_name || null,
+              assigned_zone_ids: newUser.assigned_zone_ids || null,
+              created_at: newUser.created_at,
+              updated_at: newUser.updated_at,
+            },
+          ])
+        )
+          .then((res: any) => {
+            if (res?.error) {
+              console.warn('Supabase profile upsert notice:', res.error.message);
+            }
+          })
+          .catch((err: any) => {
+            console.warn('Supabase upsert error:', err);
+          });
+      }
     }
 
     logAuditEvent({
@@ -1225,6 +1277,36 @@ export const dbService = {
     });
   },
 
+  async syncPpdOfficeFromSupabase(): Promise<PpdOfficeLocation> {
+    const current = this.getPpdOfficeLocation();
+    if (!isSupabaseConfigured) return current;
+    try {
+      const { data, error } = await supabase
+        .from('attendance_locations')
+        .select('*')
+        .eq('type', 'PPD')
+        .order('updated_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (data && !error && data.latitude && data.longitude) {
+        const synced: PpdOfficeLocation = {
+          id: data.id || current.id,
+          name: data.name || current.name,
+          address: data.address || current.address,
+          latitude: Number(data.latitude),
+          longitude: Number(data.longitude),
+          radius_meters: Number(data.radius_meters) || current.radius_meters,
+          effective_date: data.effective_date || current.effective_date,
+          updated_at: data.updated_at || new Date().toISOString(),
+        };
+        saveToStorage('ppd_office_location', synced);
+        return synced;
+      }
+    } catch (_) {}
+    return current;
+  },
+
   updatePpdOfficeLocation(updates: Partial<PpdOfficeLocation>, actor: UserProfile): PpdOfficeLocation {
     const current = this.getPpdOfficeLocation();
     const updated: PpdOfficeLocation = {
@@ -1233,6 +1315,35 @@ export const dbService = {
       updated_at: new Date().toISOString(),
     };
     saveToStorage('ppd_office_location', updated);
+
+    if (isSupabaseConfigured) {
+      const locationPayload = {
+        name: updated.name,
+        type: 'PPD',
+        latitude: updated.latitude,
+        longitude: updated.longitude,
+        radius_meters: updated.radius_meters,
+        address: updated.address || null,
+        is_active: true,
+        updated_at: updated.updated_at,
+      };
+
+      // Try updating existing PPD record first; if no rows affected, insert new record
+      Promise.resolve(
+        supabase
+          .from('attendance_locations')
+          .update(locationPayload)
+          .eq('type', 'PPD')
+          .select()
+      )
+        .then(({ data }: any) => {
+          if (!data || data.length === 0) {
+            return Promise.resolve(supabase.from('attendance_locations').insert([locationPayload]));
+          }
+        })
+        .catch(() => {});
+    }
+
     logAuditEvent({
       actor_name: actor.full_name,
       actor_role: actor.role,
@@ -1261,9 +1372,10 @@ export const dbService = {
     return loadFromStorage<Justification[]>('justifications', INITIAL_JUSTIFICATIONS);
   },
 
-  getUserTodayAttendance(userId: string, dateStr: string = '2026-11-11'): AttendanceRecord | undefined {
+  getUserTodayAttendance(userId: string, dateStr?: string): AttendanceRecord | undefined {
+    const today = dateStr || new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const records = this.getAttendanceRecords();
-    return records.find((r) => r.user_id === userId && r.date === dateStr);
+    return records.find((r) => r.user_id === userId && r.date === today);
   },
 
   getUserAttendanceRecords(userId: string): AttendanceRecord[] {
@@ -1283,7 +1395,7 @@ export const dbService = {
     faceScore?: number;
     clockInTime?: string;
   }): { success: boolean; record?: AttendanceRecord; error?: string } {
-    const dateStr = params.dateStr || '2026-11-11';
+    const dateStr = params.dateStr || new Date().toISOString().split('T')[0]; // today YYYY-MM-DD
     const users = this.getUsers();
     const user = users.find((u) => u.id === params.userId);
     if (!user) return { success: false, error: 'Pengguna PGB tidak dijumpai.' };
@@ -1352,7 +1464,7 @@ export const dbService = {
     faceScore?: number;
     clockOutTime?: string;
   }): { success: boolean; record?: AttendanceRecord; error?: string } {
-    const dateStr = params.dateStr || '2026-11-11';
+    const dateStr = params.dateStr || new Date().toISOString().split('T')[0]; // today YYYY-MM-DD
     const records = this.getAttendanceRecords();
     const existing = records.find((r) => r.user_id === params.userId && r.date === dateStr);
 

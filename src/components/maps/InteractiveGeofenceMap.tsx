@@ -17,7 +17,7 @@ import {
   MapPin,
 } from 'lucide-react';
 import {
-  PPD_TUARAN_OFFICE,
+  getPpdTuaranOfficeLocation,
   OSM_TILE_URL,
   OSM_ATTRIBUTION,
   calculateHaversineDistanceMeters,
@@ -60,13 +60,16 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
 
   const isPpdMode = locationType === 'PPD';
 
+  // Get live PPD Tuaran office coordinates (from localStorage or defaults)
+  const currentPpdOffice = getPpdTuaranOfficeLocation();
+
   // Calculate distance from current target to PPD Tuaran office (if in school mode)
   const distToPpd = !isPpdMode
     ? calculateHaversineDistanceMeters(
         latitude,
         longitude,
-        PPD_TUARAN_OFFICE.latitude,
-        PPD_TUARAN_OFFICE.longitude
+        currentPpdOffice.latitude,
+        currentPpdOffice.longitude
       )
     : 0;
 
@@ -161,24 +164,24 @@ export const InteractiveGeofenceMap: React.FC<InteractiveGeofenceMapProps> = ({
         iconAnchor: [17, 17],
       });
 
-      const ppdMarker = L.marker([PPD_TUARAN_OFFICE.latitude, PPD_TUARAN_OFFICE.longitude], {
+      const ppdMarker = L.marker([currentPpdOffice.latitude, currentPpdOffice.longitude], {
         icon: ppdIcon,
       }).addTo(map);
 
       ppdMarker.bindPopup(`
         <div style="font-family: sans-serif; font-size: 12px; line-height: 1.4;">
-          <strong style="color: #0f172a; font-size: 13px;">${PPD_TUARAN_OFFICE.name}</strong><br/>
+          <strong style="color: #0f172a; font-size: 13px;">${currentPpdOffice.name}</strong><br/>
           <span style="color: #64748b;">Lokasi Sah Kedua untuk Semua PGB</span><br/>
-          <span style="color: #0d9488; font-weight: 600;">Radius Geofence: ${PPD_TUARAN_OFFICE.radius_meters} Meter</span>
+          <span style="color: #0d9488; font-weight: 600;">Radius Geofence: ${currentPpdOffice.radius_meters} Meter</span>
         </div>
       `);
 
-      L.circle([PPD_TUARAN_OFFICE.latitude, PPD_TUARAN_OFFICE.longitude], {
+      L.circle([currentPpdOffice.latitude, currentPpdOffice.longitude], {
         color: '#0D9488',
         fillColor: '#14B8A6',
         fillOpacity: 0.18,
         weight: 2,
-        radius: PPD_TUARAN_OFFICE.radius_meters,
+        radius: currentPpdOffice.radius_meters,
       }).addTo(map);
     }
 

@@ -188,6 +188,84 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
 
+    // Direct Supabase profiles fallback if Supabase Auth user not linked or offline
+    if (isSupabaseConfigured) {
+      try {
+        const { data: remoteProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .ilike('email', cleanEmail)
+          .maybeSingle();
+
+        if (remoteProfile) {
+          const userProfile: UserProfile = {
+            id: remoteProfile.id,
+            full_name: remoteProfile.full_name || 'Pengguna',
+            ic_no: remoteProfile.ic_no || '',
+            position: remoteProfile.position || 'Pegawai',
+            email: remoteProfile.email || cleanEmail,
+            phone_number: remoteProfile.phone_number,
+            avatar_url: remoteProfile.avatar_url,
+            status: remoteProfile.status || 'ACTIVE',
+            role: (remoteProfile.role as UserRoleType) || 'PGB',
+            assigned_zone_ids: remoteProfile.assigned_zone_ids,
+            assigned_school_id: remoteProfile.assigned_school_id,
+            school_name: remoteProfile.school_name,
+            created_at: remoteProfile.created_at || new Date().toISOString(),
+            updated_at: remoteProfile.updated_at || new Date().toISOString(),
+          };
+
+          if (userProfile.status !== 'ACTIVE') {
+            setIsLoading(false);
+            return {
+              success: false,
+              error: `Akaun anda telah berstatus ${userProfile.status}. Sila hubungi Super Admin PPD Tuaran untuk pengaktifan semula.`,
+            };
+          }
+
+          const currentPortal = targetPortal || portalMode;
+          if (currentPortal === 'ADMIN' && userProfile.role === 'PGB') {
+            setIsLoading(false);
+            return {
+              success: false,
+              error: 'Akaun Pengetua / Guru Besar (PGB) perlu menggunakan Portal Pengguna e-HADIR TUARAN.',
+            };
+          }
+
+          if (currentPortal === 'USER' && userProfile.role !== 'PGB') {
+            setIsLoading(false);
+            return {
+              success: false,
+              error: 'Akaun Pentadbir perlu menggunakan Portal Pentadbiran.',
+            };
+          }
+
+          dbService.saveUser(userProfile);
+          setUser(userProfile);
+          if (userProfile.role === 'PGB') {
+            setPortalMode('USER');
+          } else {
+            setPortalMode('ADMIN');
+          }
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(userProfile));
+
+          logAuditEvent({
+            actor_name: userProfile.full_name,
+            actor_role: userProfile.role,
+            actor_id: userProfile.id,
+            action: 'LOG_MASUK',
+            entity: 'AUTENTIKASI',
+            remarks: `Log masuk berjaya ke Portal ${userProfile.role === 'PGB' ? 'Pengguna PGB' : 'Pentadbiran'} sebagai ${userProfile.role}.`,
+          });
+
+          setIsLoading(false);
+          return { success: true };
+        }
+      } catch (dbErr) {
+        console.warn('Direct Supabase profile lookup notice:', dbErr);
+      }
+    }
+
     const users = dbService.getUsers();
     const matched = users.find(
       (u) => u.email.toLowerCase() === cleanEmail || u.id.toLowerCase() === cleanEmail
@@ -209,6 +287,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return {
         success: false,
         error: 'Akaun Pengetua / Guru Besar (PGB) perlu menggunakan Portal Pengguna e-HADIR TUARAN.',
+      };
+    }
+
+    if (currentPortal === 'USER' && matched.role !== 'PGB') {
+      setIsLoading(false);
+      return {
+        success: false,
+        error: 'Akaun Pentadbir perlu menggunakan Portal Pentadbiran.',
       };
     }
 

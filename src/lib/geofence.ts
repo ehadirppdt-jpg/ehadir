@@ -224,13 +224,14 @@ export function verifyAttendanceGeofence(params: {
   const isAtSchool = distanceToSchool <= schoolRadiusMeters;
 
   // 2. Check distance to PPD Tuaran HQ
+  const ppdOffice = getPpdTuaranOfficeLocation();
   const distanceToPpd = calculateHaversineDistanceMeters(
     userLatitude,
     userLongitude,
-    PPD_TUARAN_OFFICE.latitude,
-    PPD_TUARAN_OFFICE.longitude
+    ppdOffice.latitude,
+    ppdOffice.longitude
   );
-  const isAtPpd = distanceToPpd <= PPD_TUARAN_OFFICE.radius_meters;
+  const isAtPpd = distanceToPpd <= ppdOffice.radius_meters;
 
   // 3. Evaluate results
   if (isAtSchool) {
@@ -250,9 +251,9 @@ export function verifyAttendanceGeofence(params: {
     return {
       authorized: true,
       location_type: 'PPD_TUARAN',
-      location_name: PPD_TUARAN_OFFICE.name,
+      location_name: ppdOffice.name,
       distance_meters: distanceToPpd,
-      allowed_radius_meters: PPD_TUARAN_OFFICE.radius_meters,
+      allowed_radius_meters: ppdOffice.radius_meters,
       accuracy_meters: Math.round(accuracy),
       is_at_school: false,
       is_at_ppd: true,
@@ -269,7 +270,7 @@ export function verifyAttendanceGeofence(params: {
     accuracy_meters: Math.round(accuracy),
     is_at_school: false,
     is_at_ppd: false,
-    rejection_reason: `Lokasi anda (${userLatitude.toFixed(6)}, ${userLongitude.toFixed(6)}) berada di luar radius sah ${schoolName} (${distanceToSchool}m > ${schoolRadiusMeters}m) dan PPD Tuaran (${distanceToPpd}m > ${PPD_TUARAN_OFFICE.radius_meters}m).`,
+    rejection_reason: `Lokasi anda (${userLatitude.toFixed(6)}, ${userLongitude.toFixed(6)}) berada di luar radius sah ${schoolName} (${distanceToSchool}m > ${schoolRadiusMeters}m) dan PPD Tuaran (${distanceToPpd}m > ${ppdOffice.radius_meters}m).`,
     risk_alerts: ['GEOFENCE_BREACH'],
   };
 }

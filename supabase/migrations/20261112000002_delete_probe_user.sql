@@ -17,3 +17,4 @@ WHERE email = 'probe@test.com'
 -- 3. Sahkan hanya akaun rasmi Super Admin yang kekal
 SELECT id, full_name, email, role, status 
 FROM public.profiles;
+

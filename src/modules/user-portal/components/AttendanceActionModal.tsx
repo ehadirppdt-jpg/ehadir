@@ -63,10 +63,17 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
     locationName: string;
   } | null>(null);
 
-  // Target school & PPD
+  // Target school & PPD with safe fallback
   const schools = dbService.getSchools();
-  const assignedSchool = schools.find((s) => s.id === user.assigned_school_id) || schools[0];
   const ppdOffice = dbService.getPpdOffice();
+  const fallbackSchool = {
+    id: 'sch-default',
+    name: user.school_name || 'Sekolah Bertugas PGB',
+    latitude: 6.13412,
+    longitude: 116.23054,
+    geofence_radius_meters: 100,
+  };
+  const assignedSchool = schools.find((s) => s.id === user.assigned_school_id) || schools[0] || fallbackSchool;
 
   // Reset modal when opened
   useEffect(() => {

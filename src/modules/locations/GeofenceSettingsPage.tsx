@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Compass, ShieldCheck, MapPin, Save, Building2, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -21,6 +21,17 @@ export const GeofenceSettingsPage: React.FC = () => {
   const [ppdRadius, setPpdRadius] = useState(ppdOffice.radius_meters);
   const [defaultSchoolRadius, setDefaultSchoolRadius] = useState(100);
   const [strictMode, setStrictMode] = useState(true);
+
+  useEffect(() => {
+    dbService.syncPpdOfficeFromSupabase().then((synced) => {
+      if (synced) {
+        setPpdOffice(synced);
+        setLat(synced.latitude);
+        setLng(synced.longitude);
+        setPpdRadius(synced.radius_meters);
+      }
+    });
+  }, []);
 
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
 

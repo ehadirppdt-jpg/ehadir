@@ -25,7 +25,9 @@ export const SchoolMapPage: React.FC = () => {
   const zones = useMemo(() => dbService.getZones(), []);
 
   // Target selection: 'SCHOOL' or 'PPD'
-  const [selectedTargetType, setSelectedTargetType] = useState<'SCHOOL' | 'PPD'>('SCHOOL');
+  const [selectedTargetType, setSelectedTargetType] = useState<'SCHOOL' | 'PPD'>(() =>
+    schools.length > 0 ? 'SCHOOL' : 'PPD'
+  );
   const [selectedSchoolId, setSelectedSchoolId] = useState<string>(schools[0]?.id || '');
   const [searchFilter, setSearchFilter] = useState('');
 
@@ -33,6 +35,21 @@ export const SchoolMapPage: React.FC = () => {
   const [ppdOffice, setPpdOffice] = useState<PpdOfficeLocation>(() =>
     dbService.getPpdOfficeLocation()
   );
+
+  useEffect(() => {
+    dbService.syncSchoolsFromSupabase().then((synced) => {
+      if (synced && synced.length > 0) {
+        setSchools(synced);
+        setSelectedSchoolId((prev) => prev || synced[0].id);
+      }
+    });
+
+    dbService.syncPpdOfficeFromSupabase().then((syncedPpd) => {
+      if (syncedPpd) {
+        setPpdOffice(syncedPpd);
+      }
+    });
+  }, []);
 
   const selectedSchool = useMemo(() => {
     return schools.find((s) => s.id === selectedSchoolId) || schools[0];

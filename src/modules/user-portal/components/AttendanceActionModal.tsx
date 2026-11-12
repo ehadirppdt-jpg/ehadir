@@ -67,6 +67,18 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
   // Target school & PPD with safe fallback
   const schools = dbService.getSchools();
   const ppdOffice = dbService.getPpdOffice();
+
+  // Check shortfall for clock out against 9-hour requirement (540 minutes)
+  const todayRec = dbService.getUserTodayAttendance(user.id);
+  let shortfallMinutes = 0;
+  if (actionType === 'OUT' && todayRec?.clock_in_time) {
+    const cin = new Date(todayRec.clock_in_time).getTime();
+    const elapsed = Math.max(1, Math.round((Date.now() - cin) / 60000));
+    if (elapsed < 540) {
+      shortfallMinutes = 540 - elapsed;
+    }
+  }
+
   const fallbackSchool = {
     id: 'sch-default',
     name: user.school_name || 'Sekolah Bertugas PGB',
@@ -338,10 +350,24 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
           return;
         }
 
-        showToast(
-          `Rekod Keluar Berjaya! Waktu keluar direkodkan pada jam ${currentTimeStr}. Kehadiran hari ini lengkap!`,
-          'success'
-        );
+        const isShortfall =
+          result.record?.status === 'TIDAK_LENGKAP' ||
+          (result.record?.shortfall_minutes && result.record.shortfall_minutes > 0);
+
+        if (isShortfall) {
+          const sfM = result.record?.shortfall_minutes || shortfallMinutes;
+          const sfH = Math.floor(sfM / 60);
+          const sfRemM = sfM % 60;
+          showToast(
+            `Rekod Keluar dicatat pada ${currentTimeStr}. Amaran: Kekurangan jam bekerja (${sfH}j ${sfRemM}m daripada 9 jam). Sila hantar justifikasi rasmi.`,
+            'warning'
+          );
+        } else {
+          showToast(
+            `Rekod Keluar Berjaya! Waktu keluar direkodkan pada jam ${currentTimeStr}. Sasaran 9 jam bertugas dipenuhi sepenuhnya!`,
+            'success'
+          );
+        }
       }
 
       setIsLoading(false);
@@ -602,6 +628,20 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
                 </div>
               )}
 
+              {/* Warning Notice If Clocking Out Early Before 9 Hours */}
+              {actionType === 'OUT' && shortfallMinutes > 0 && (
+                <div className="p-3.5 bg-amber-500/15 border border-amber-500/40 rounded-xl text-left space-y-1 mb-3">
+                  <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
+                    <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Amaran: Kekurangan Jam Bekerja!</span>
+                  </div>
+                  <p className="text-[11px] text-amber-200/90 leading-relaxed">
+                    Tempoh bertugas anda adalah <strong>{Math.floor((540 - shortfallMinutes) / 60)}j {(540 - shortfallMinutes) % 60}m</strong>. Masa bertugas kurang <strong>{Math.floor(shortfallMinutes / 60)} jam {shortfallMinutes % 60} minit</strong> daripada ketetapan rasmi 9 jam (540 minit).
+                    Rekod akan ditandakan sebagai <strong>TIDAK LENGKAP</strong> dan anda perlu menghantar justifikasi rasmi.
+                  </p>
+                </div>
+              )}
+
               {/* Submit Button */}
               <button
                 type="button"
@@ -610,6 +650,8 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
                 className={`w-full py-3.5 font-bold text-xs rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all ${
                   actionType === 'IN'
                     ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-950'
+                    : shortfallMinutes > 0
+                    ? 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white shadow-amber-950'
                     : 'bg-gradient-to-r from-blue-600 to-sky-600 hover:from-blue-500 hover:to-sky-500 text-white shadow-blue-950'
                 }`}
               >
@@ -623,6 +665,8 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
                     <CheckCircle2 className="w-4 h-4" />
                     {actionType === 'IN'
                       ? 'MEREKODKAN KEHADIRAN MASUK'
+                      : shortfallMinutes > 0
+                      ? 'SAHKAN KELUAR (KEKURANGAN JAM)'
                       : 'MEREKODKAN KEHADIRAN KELUAR'}
                   </>
                 )}
@@ -633,17 +677,32 @@ export const AttendanceActionModal: React.FC<AttendanceActionModalProps> = ({
           {/* STEP 5: SUCCESS CONFIRMATION */}
           {currentStep === 'SUBMIT' && (
             <div className="py-8 text-center space-y-3">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400 flex items-center justify-center mx-auto animate-bounce">
-                <CheckCircle2 className="w-8 h-8" />
+              <div
+                className={`w-16 h-16 rounded-full border-2 flex items-center justify-center mx-auto animate-bounce ${
+                  actionType === 'OUT' && shortfallMinutes > 0
+                    ? 'bg-amber-500/20 border-amber-500 text-amber-400'
+                    : 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
+                }`}
+              >
+                {actionType === 'OUT' && shortfallMinutes > 0 ? (
+                  <AlertTriangle className="w-8 h-8" />
+                ) : (
+                  <CheckCircle2 className="w-8 h-8" />
+                )}
               </div>
               <h4 className="text-base font-extrabold text-white">
                 {actionType === 'IN'
                   ? 'REKOD MASUK BERJAYA DISAHKAN'
+                  : shortfallMinutes > 0
+                  ? 'REKOD KELUAR DISAHKAN (KEKURANGAN JAM)'
                   : 'REKOD KELUAR BERJAYA DISAHKAN'}
               </h4>
               <p className="text-xs text-slate-300 max-w-xs mx-auto">
-                Transaksi kehadiran anda telah disahkan melalui Biometrik Wajah dan Geofence GPS
-                PPD Tuaran.
+                {actionType === 'IN'
+                  ? 'Transaksi kehadiran anda telah disahkan melalui Biometrik Wajah dan Geofence GPS PPD Tuaran. Pemasa 9 jam bertugas kini bermula.'
+                  : shortfallMinutes > 0
+                  ? `Masa keluar direkodkan dengan kekurangan ${Math.floor(shortfallMinutes / 60)}j ${shortfallMinutes % 60}m. Sila kemukakan justifikasi rasmi di Portal Pengguna.`
+                  : 'Transaksi kehadiran anda telah disahkan lengkap dengan genap sasaran 9 jam bertugas.'}
               </p>
             </div>
           )}

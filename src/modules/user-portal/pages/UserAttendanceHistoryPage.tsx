@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import { dbService } from '@/lib/db';
 import { exportToPdf } from '@/lib/exportPdf';
 import { AttendanceRecord } from '@/types';
+import { formatLocalTime } from '@/lib/dateUtils';
 
 export const UserAttendanceHistoryPage: React.FC = () => {
   const { user } = useAuth();
@@ -84,8 +85,8 @@ export const UserAttendanceHistoryPage: React.FC = () => {
       return [
         r.date,
         dayName,
-        r.clock_in_time || '-',
-        r.clock_out_time || '-',
+        formatLocalTime(r.clock_in_time),
+        formatLocalTime(r.clock_out_time),
         durationStr,
         r.shortfall_minutes || 0,
         r.location_name || user.school_name || 'Sekolah',
@@ -224,11 +225,11 @@ export const UserAttendanceHistoryPage: React.FC = () => {
                         <span className="font-bold text-white block">{r.date}</span>
                         <span className="text-[10px] text-slate-400">{dayName}</span>
                       </td>
-                      <td className="py-3 px-4 text-emerald-400 font-semibold">
-                        {r.clock_in_time || '-'}
+                      <td className="py-3 px-4 text-emerald-400 font-semibold font-mono text-xs">
+                        {formatLocalTime(r.clock_in_time)}
                       </td>
-                      <td className="py-3 px-4 text-sky-400 font-semibold">
-                        {r.clock_out_time || '-'}
+                      <td className="py-3 px-4 text-sky-400 font-semibold font-mono text-xs">
+                        {formatLocalTime(r.clock_out_time)}
                       </td>
                       <td className="py-3 px-4">
                         <span className="font-bold text-slate-200">

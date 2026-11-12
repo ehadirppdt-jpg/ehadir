@@ -1,3 +1,4 @@
+import { getLocalDateStr } from './dateUtils';
 import {
   Zone,
   School,
@@ -1569,14 +1570,28 @@ export const dbService = {
   },
 
   getUserTodayAttendance(userId: string, dateStr?: string): AttendanceRecord | undefined {
-    const today = dateStr || new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const today = dateStr || getLocalDateStr();
     const records = this.getAttendanceRecords();
-    return records.find((r) => r.user_id === userId && r.date === today);
+    const users = this.getUsers();
+    const currentUser = users.find((u) => u.id === userId || u.email === userId);
+
+    return records.find(
+      (r) =>
+        (r.user_id === userId ||
+          (currentUser && (r.user_id === currentUser.id || r.user_id === currentUser.email))) &&
+        (r.date === today || (r.clock_in_time && getLocalDateStr(new Date(r.clock_in_time)) === today))
+    );
   },
 
   getUserAttendanceRecords(userId: string): AttendanceRecord[] {
     const records = this.getAttendanceRecords();
-    return records.filter((r) => r.user_id === userId);
+    const users = this.getUsers();
+    const currentUser = users.find((u) => u.id === userId || u.email === userId);
+    return records.filter(
+      (r) =>
+        r.user_id === userId ||
+        (currentUser && (r.user_id === currentUser.id || r.user_id === currentUser.email))
+    );
   },
 
   clockInPgb(params: {
@@ -1591,9 +1606,9 @@ export const dbService = {
     faceScore?: number;
     clockInTime?: string;
   }): { success: boolean; record?: AttendanceRecord; error?: string } {
-    const dateStr = params.dateStr || new Date().toISOString().split('T')[0]; // today YYYY-MM-DD
+    const dateStr = params.dateStr || getLocalDateStr(); // today YYYY-MM-DD
     const users = this.getUsers();
-    const user = users.find((u) => u.id === params.userId);
+    const user = users.find((u) => u.id === params.userId || u.email === params.userId);
     if (!user) return { success: false, error: 'Pengguna PGB tidak dijumpai.' };
 
     const schools = this.getSchools();
@@ -1602,7 +1617,11 @@ export const dbService = {
     const zone = zones.find((z) => z.id === school?.zone_id);
 
     const records = this.getAttendanceRecords();
-    const existing = records.find((r) => r.user_id === params.userId && r.date === dateStr);
+    const existing = records.find(
+      (r) =>
+        (r.user_id === user.id || r.user_id === params.userId) &&
+        (r.date === dateStr || (r.clock_in_time && getLocalDateStr(new Date(r.clock_in_time)) === dateStr))
+    );
     if (existing && existing.clock_in_time) {
       return { success: false, error: 'Anda telah merekodkan masa masuk (Clock-In) bagi hari ini.' };
     }
@@ -1620,6 +1639,8 @@ export const dbService = {
       clock_in_time: clockInIso,
       clock_in_location: `${params.locationName} (Dalam Radius ${Math.round(params.accuracy)}m)`,
       total_working_minutes: 0,
+      work_duration_minutes: 0,
+      shortfall_minutes: 540,
       late_minutes: 0,
       status: 'LENGKAP',
       face_verified: params.faceVerified,
@@ -1689,9 +1710,17 @@ export const dbService = {
     faceScore?: number;
     clockOutTime?: string;
   }): { success: boolean; record?: AttendanceRecord; error?: string } {
-    const dateStr = params.dateStr || new Date().toISOString().split('T')[0]; // today YYYY-MM-DD
+    const dateStr = params.dateStr || getLocalDateStr(); // today YYYY-MM-DD
     const records = this.getAttendanceRecords();
-    const existing = records.find((r) => r.user_id === params.userId && r.date === dateStr);
+    const users = this.getUsers();
+    const currentUser = users.find((u) => u.id === params.userId || u.email === params.userId);
+
+    const existing = records.find(
+      (r) =>
+        (r.user_id === params.userId ||
+          (currentUser && (r.user_id === currentUser.id || r.user_id === currentUser.email))) &&
+        (r.date === dateStr || (r.clock_in_time && getLocalDateStr(new Date(r.clock_in_time)) === dateStr))
+    );
 
     if (!existing || !existing.clock_in_time) {
       return { success: false, error: 'Sila rekodkan masa masuk (Clock-In) terlebih dahulu sebelum merekod masa keluar.' };
@@ -1704,15 +1733,20 @@ export const dbService = {
     const clockOutIso = new Date().toISOString();
     const clockInTime = new Date(existing.clock_in_time).getTime();
     const clockOutTime = new Date(clockOutIso).getTime();
-    const elapsedMinutes = Math.max(30, Math.round((clockOutTime - clockInTime) / 60000));
-    const finalMinutes = elapsedMinutes > 60 ? elapsedMinutes : 545;
-    const isCompleted = finalMinutes >= 540;
+
+    // Calculate actual elapsed minutes worked
+    const elapsedMinutes = Math.max(1, Math.round((clockOutTime - clockInTime) / 60000));
+    const targetMinutes = 540; // 9 jam fleksi (540 minit)
+    const isCompleted = elapsedMinutes >= targetMinutes;
+    const shortfallMinutes = isCompleted ? 0 : (targetMinutes - elapsedMinutes);
 
     const updatedRecord: AttendanceRecord = {
       ...existing,
       clock_out_time: clockOutIso,
       clock_out_location: `${params.locationName} (Dalam Radius ${Math.round(params.accuracy)}m)`,
-      total_working_minutes: finalMinutes,
+      total_working_minutes: elapsedMinutes,
+      work_duration_minutes: elapsedMinutes,
+      shortfall_minutes: shortfallMinutes,
       status: isCompleted ? 'LENGKAP' : 'TIDAK_LENGKAP',
       has_justification: !isCompleted,
       justification_status: !isCompleted ? 'MENUNGGU_SEMAKAN' : undefined,
@@ -1748,7 +1782,9 @@ export const dbService = {
       entity: 'KEHADIRAN',
       record_id: updatedRecord.id,
       new_values: updatedRecord,
-      remarks: `Rekod Keluar (Clock-Out) berjaya di ${params.locationName}. Tempoh bertugas: ${Math.floor(finalMinutes / 60)}j ${finalMinutes % 60}m`,
+      remarks: isCompleted
+        ? `Rekod Keluar (Clock-Out) berjaya di ${params.locationName}. Tempoh: ${Math.floor(elapsedMinutes / 60)}j ${elapsedMinutes % 60}m (Sasaran 9 Jam dipenuhi).`
+        : `Rekod Keluar (Clock-Out) dengan KEKURANGAN JAM di ${params.locationName}. Tempoh: ${Math.floor(elapsedMinutes / 60)}j ${elapsedMinutes % 60}m (Kurang ${Math.floor(shortfallMinutes / 60)}j ${shortfallMinutes % 60}m daripada 9 jam). Perlu justifikasi.`,
     });
 
     return { success: true, record: updatedRecord };
@@ -1772,6 +1808,9 @@ export const dbService = {
 
     const userJustifications = this.getUserJustifications(userId);
     const pendingJustifications = userJustifications.filter((j) => j.status === 'MENUNGGU_SEMAKAN').length;
+    const approvedJustifications = userJustifications.filter(
+      (j) => j.status === 'DILULUSKAN' || j.status === 'DISAHKAN'
+    ).length;
 
     const totalHoursFormatted = `${Math.floor(totalMinutes / 60)}j ${totalMinutes % 60}m`;
     const shortfallDays = records.filter((r) => !!r.clock_out_time && (r.total_working_minutes || 0) < 540).length;
@@ -1792,6 +1831,7 @@ export const dbService = {
       shortfallDays,
       pendingJustifications,
       needsJustificationCount,
+      justifiedDays: approvedJustifications,
     };
   },
 

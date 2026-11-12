@@ -28,7 +28,7 @@ export const UserJustificationsPage: React.FC = () => {
 
   // Form state
   const [selectedCategory, setSelectedCategory] = useState<string>('URUSAN_RASMI');
-  const [incidentDate, setIncidentDate] = useState('2026-11-10');
+  const [incidentDate, setIncidentDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [timeRelated, setTimeRelated] = useState('08:00');
   const [reasonText, setReasonText] = useState('');
   const [attachedFileName, setAttachedFileName] = useState('');

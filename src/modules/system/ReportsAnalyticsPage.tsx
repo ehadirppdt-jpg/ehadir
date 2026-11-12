@@ -21,8 +21,9 @@ export const ReportsAnalyticsPage: React.FC = () => {
   const { showToast } = useToast();
 
   const [reportType, setReportType] = useState<string>('BY_ZONE');
-  const [selectedMonth, setSelectedMonth] = useState<number>(10);
-  const [selectedYear, setSelectedYear] = useState<number>(2026);
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
 
   const zones = useMemo(() => dbService.getZones(), []);
   const schools = useMemo(() => dbService.getSchools(), []);
@@ -150,7 +151,7 @@ export const ReportsAnalyticsPage: React.FC = () => {
               className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 bg-white"
             >
               <option value="BY_ZONE">1. Ringkasan Kehadiran Mengikut 6 Zon</option>
-              <option value="BY_SCHOOL">2. Senarai Sekolah & Status Geofence (85 Sekolah)</option>
+              <option value="BY_SCHOOL">2. Senarai Sekolah & Status Geofence</option>
               <option value="MONTHLY_VERIFICATION">3. Laporan Status Pengesahan Bulanan</option>
               <option value="LATE_ATTENDANCE">4. Analisis Rekod Lewat & Justifikasi</option>
             </select>

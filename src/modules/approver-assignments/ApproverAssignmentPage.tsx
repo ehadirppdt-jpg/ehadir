@@ -28,8 +28,9 @@ export const ApproverAssignmentPage: React.FC = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
 
-  const [selectedMonth, setSelectedMonth] = useState<number>(11); // November
-  const [selectedYear, setSelectedYear] = useState<number>(2026);
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
   const [selectedZone, setSelectedZone] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ASSIGNED' | 'UNASSIGNED'>('ALL');
   const [searchQuery, setSearchQuery] = useState('');

@@ -21,7 +21,7 @@ interface UserCalendarPageProps {
 
 export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }) => {
   const { user } = useAuth();
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 10, 1)); // Default to Nov 2026
+  const [currentDate, setCurrentDate] = useState(() => new Date());
   const [selectedDayRecord, setSelectedDayRecord] = useState<{
     dateStr: string;
     dayNum: number;

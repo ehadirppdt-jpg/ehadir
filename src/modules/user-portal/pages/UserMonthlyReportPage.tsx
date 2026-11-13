@@ -99,8 +99,9 @@ export const UserMonthlyReportPage: React.FC = () => {
             onChange={(e) => setSelectedYear(Number(e.target.value))}
             className="px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 shadow-sm"
           >
-            <option value={2026}>2026</option>
-            <option value={2025}>2025</option>
+            <option value={now.getFullYear()}>{now.getFullYear()}</option>
+            <option value={now.getFullYear() - 1}>{now.getFullYear() - 1}</option>
+            {now.getFullYear() !== 2026 && <option value={2026}>2026</option>}
           </select>
 
           <button

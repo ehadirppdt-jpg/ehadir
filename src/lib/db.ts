@@ -4,6 +4,7 @@ import {
   School,
   UserProfile,
   AttendanceRecord,
+  AttendanceStatusType,
   Justification,
   MonthlyAttendanceRecord,
   MonthlyApproverAssignment,
@@ -164,56 +165,49 @@ export const INITIAL_JUSTIFICATIONS: Justification[] = [];
 // STORAGE HELPER
 // ========================================================================
 
+export function normalizeAttendanceRecord(r: AttendanceRecord): AttendanceRecord {
+  if (!r) return r;
+  if (r.clock_in_time && r.clock_out_time) {
+    const inMs = new Date(r.clock_in_time).getTime();
+    const outMs = new Date(r.clock_out_time).getTime();
+    if (inMs > 0 && outMs >= inMs) {
+      const realMinutes = Math.max(1, Math.round((outMs - inMs) / 60000));
+      const isCompleted = realMinutes >= 540;
+      const shortfallMinutes = isCompleted ? 0 : 540 - realMinutes;
+      const isApproved = r.justification_status === 'DISAHKAN' || r.justification_status === 'DILULUSKAN';
+      const status: AttendanceStatusType = isCompleted
+        ? 'LENGKAP'
+        : isApproved
+        ? 'LENGKAP'
+        : r.justification_status === 'MENUNGGU_SEMAKAN'
+        ? 'MENUNGGU_SEMAKAN'
+        : 'TIDAK_LENGKAP';
+
+      return {
+        ...r,
+        total_working_minutes: realMinutes,
+        work_duration_minutes: realMinutes,
+        shortfall_minutes: shortfallMinutes,
+        status,
+        has_justification: !isCompleted || !!r.has_justification,
+      };
+    }
+  }
+  return r;
+}
+
 function loadFromStorage<T>(key: string, defaultData: T): T {
   try {
     // Purge legacy demo seed data from browser localStorage on first run
-    // v10: Clear attendance records that may have fake 545-minute duration from old bug
-    const purgeFlag = 'ehadir_purge_v10_fix_duration';
+    // v11: Clear attendance records and auto-normalize duration
+    const purgeFlag = 'ehadir_purge_v11_sync_duration';
     if (!localStorage.getItem(purgeFlag)) {
-      // Remove all old purge flags too so this always runs fresh
       localStorage.removeItem('ehadir_purge_v8_purge_probe');
       localStorage.removeItem('ehadir_purge_v9_reset_all');
+      localStorage.removeItem('ehadir_purge_v10_fix_duration');
 
-      const rawUsers = localStorage.getItem('ehadir_users');
-      if (rawUsers) {
-        try {
-          const parsed = JSON.parse(rawUsers);
-          if (Array.isArray(parsed)) {
-            // Keep only real SUPER_ADMIN users (not probe/test accounts)
-            const superAdmins = parsed.filter(
-              (u: any) =>
-                u.role === 'SUPER_ADMIN' &&
-                !u.email?.toLowerCase()?.includes('probe') &&
-                !u.email?.toLowerCase()?.includes('test')
-            );
-            localStorage.setItem('ehadir_users', JSON.stringify(superAdmins));
-          } else {
-            localStorage.removeItem('ehadir_users');
-          }
-        } catch {
-          localStorage.removeItem('ehadir_users');
-        }
-      } else {
-        localStorage.removeItem('ehadir_users');
-      }
-
-      // Clear ALL operational data for fresh start
-      localStorage.removeItem('ehadir_schools');
+      // Purge stale attendance records so tests run on fresh, normalized state
       localStorage.removeItem('ehadir_attendance_records');
-      localStorage.removeItem('ehadir_justifications');
-      localStorage.removeItem('ehadir_monthly_records');
-      localStorage.removeItem('ehadir_approver_assignments');
-      localStorage.removeItem('ehadir_notifications');
-      localStorage.removeItem('ehadir_device_registry');
-      localStorage.removeItem('ehadir_monthly_approvals');
-      localStorage.removeItem('ehadir_zones'); // Reset zones to default seed
-      localStorage.removeItem('ehadir_work_schedules');
-      localStorage.removeItem('ehadir_holiday_calendar');
-      localStorage.removeItem('ehadir_audit_logs');
-      localStorage.removeItem('ehadir_risk_alerts');
-      localStorage.removeItem('ehadir_biometric_profiles');
-      localStorage.removeItem('ehadir_admin_zone_assignments');
-      localStorage.removeItem('ehadir_admin_school_assignments');
 
       localStorage.setItem(purgeFlag, 'true');
     }
@@ -227,6 +221,9 @@ function loadFromStorage<T>(key: string, defaultData: T): T {
             u.email?.toLowerCase() !== 'probe@test.com' &&
             !u.email?.toLowerCase()?.includes('probe@')
         ) as T;
+      }
+      if (key === 'attendance_records' && Array.isArray(parsed)) {
+        return parsed.map((item: any) => normalizeAttendanceRecord(item)) as T;
       }
       return parsed;
     }
@@ -1247,7 +1244,7 @@ export const dbService = {
 
   // --- DASHBOARD METRICS ---
   getDashboardStats(zoneId?: string, targetDate?: string): DashboardStats {
-    const todayStr = targetDate || new Date().toISOString().split('T')[0];
+    const todayStr = targetDate || getLocalDateStr();
     const schools = this.getSchools().filter((s) => s.status === 'ACTIVE');
     const filteredSchools = zoneId ? schools.filter((s) => s.zone_id === zoneId) : schools;
     const schoolIds = new Set(filteredSchools.map((s) => s.id));
@@ -1258,19 +1255,11 @@ export const dbService = {
       : allUsers;
 
     const allRecords = this.getAttendanceRecords();
-    let todayRecords = allRecords.filter((r) => {
-      const match = r.date === todayStr || (r.clock_in_time && r.clock_in_time.startsWith(todayStr));
+    const todayRecords = allRecords.filter((r) => {
+      const match = r.date === todayStr || (r.clock_in_time && getLocalDateStr(new Date(r.clock_in_time)) === todayStr);
       const zoneMatch = zoneId ? r.zone_id === zoneId : true;
       return match && zoneMatch;
     });
-
-    // Fallback if no records today yet, check if there are test records for 2026-11-11
-    if (todayRecords.length === 0) {
-      todayRecords = allRecords.filter((r) => {
-        const zoneMatch = zoneId ? r.zone_id === zoneId : true;
-        return r.date === '2026-11-11' && zoneMatch;
-      });
-    }
 
     const currentMonth = new Date().getMonth() + 1;
     const currentYear = new Date().getFullYear();
@@ -1320,31 +1309,56 @@ export const dbService = {
           const existingIdx = merged.findIndex(
             (m) => (m.id === row.id) || (m.user_id === row.user_id && m.date === row.date)
           );
+          const existingLocal = existingIdx >= 0 ? merged[existingIdx] : null;
 
-          const recordItem: AttendanceRecord = {
+          let totalMins = Number(row.total_working_minutes) || (existingLocal ? existingLocal.total_working_minutes : 0);
+          if (row.clock_in_time && row.clock_out_time) {
+            const inMs = new Date(row.clock_in_time).getTime();
+            const outMs = new Date(row.clock_out_time).getTime();
+            if (inMs > 0 && outMs >= inMs) {
+              totalMins = Math.max(1, Math.round((outMs - inMs) / 60000));
+            }
+          }
+          const isCompleted = totalMins >= 540;
+          const shortfall = row.clock_out_time ? (isCompleted ? 0 : Math.max(0, 540 - totalMins)) : (existingLocal?.shortfall_minutes ?? 0);
+
+          const recordItem: AttendanceRecord = normalizeAttendanceRecord({
             id: row.id,
             user_id: row.user_id,
-            pgb_name: user?.full_name || 'Pengetua / Guru Besar',
-            school_id: row.school_id || user?.assigned_school_id || 'sch-001',
-            school_name: school?.name || user?.school_name || 'Sekolah PGB',
-            zone_id: school?.zone_id || 'zone-z01',
-            zone_name: school?.zone_name || 'ZON PENTADBIRAN',
+            pgb_name: user?.full_name || existingLocal?.pgb_name || 'Pengetua / Guru Besar',
+            school_id: row.school_id || user?.assigned_school_id || existingLocal?.school_id || 'sch-001',
+            school_name: school?.name || user?.school_name || existingLocal?.school_name || 'Sekolah PGB',
+            zone_id: school?.zone_id || existingLocal?.zone_id || 'zone-z01',
+            zone_name: school?.zone_name || existingLocal?.zone_name || 'ZON PENTADBIRAN',
             date: row.date,
-            clock_in_time: row.clock_in_time,
-            clock_out_time: row.clock_out_time,
-            clock_in_location: 'Lokasi Sah Geofence',
-            clock_out_location: row.clock_out_time ? 'Lokasi Sah Geofence' : undefined,
-            total_working_minutes: Number(row.total_working_minutes) || 0,
+            clock_in_time: row.clock_in_time || existingLocal?.clock_in_time,
+            clock_out_time: row.clock_out_time || existingLocal?.clock_out_time,
+            clock_in_location: existingLocal?.clock_in_location || (school ? `${school.name} (Dalam Geofence)` : 'Lokasi Sah Geofence'),
+            clock_out_location: row.clock_out_time
+              ? (existingLocal?.clock_out_location || (school ? `${school.name} (Dalam Geofence)` : 'Lokasi Sah Geofence'))
+              : undefined,
+            clock_in_lat: existingLocal?.clock_in_lat ?? school?.latitude,
+            clock_in_lng: existingLocal?.clock_in_lng ?? school?.longitude,
+            clock_in_accuracy: existingLocal?.clock_in_accuracy ?? 12,
+            clock_out_lat: existingLocal?.clock_out_lat ?? school?.latitude,
+            clock_out_lng: existingLocal?.clock_out_lng ?? school?.longitude,
+            clock_out_accuracy: existingLocal?.clock_out_accuracy ?? 12,
+            total_working_minutes: totalMins,
+            work_duration_minutes: totalMins,
+            shortfall_minutes: shortfall,
             late_minutes: Number(row.late_minutes) || 0,
-            status: row.status || 'LENGKAP',
-            face_verified: true,
-            gps_validated: true,
+            status: (row.status as any) || (isCompleted ? 'LENGKAP' : row.clock_out_time ? 'TIDAK_LENGKAP' : 'LENGKAP'),
+            face_verified: existingLocal?.face_verified ?? true,
+            gps_validated: existingLocal?.gps_validated ?? true,
+            has_justification: existingLocal?.has_justification ?? (!isCompleted && !!row.clock_out_time),
+            justification_status: existingLocal?.justification_status,
             is_verified: row.is_verified || false,
-            created_at: row.created_at || new Date().toISOString(),
-          };
+            created_at: row.created_at || existingLocal?.created_at || new Date().toISOString(),
+            location_name: school?.name || existingLocal?.location_name || 'Sekolah',
+          });
 
           if (existingIdx >= 0) {
-            merged[existingIdx] = { ...merged[existingIdx], ...recordItem };
+            merged[existingIdx] = { ...existingLocal, ...recordItem };
           } else {
             merged.push(recordItem);
           }
@@ -1538,6 +1552,35 @@ export const dbService = {
         return j;
       });
       saveToStorage('justifications', updated);
+
+      const targetJustification = list.find((j) => j.id === id);
+      if (targetJustification) {
+        // Update matching attendance record
+        const attRecords = this.getAttendanceRecords();
+        const matchingAtt = attRecords.find(
+          (a) =>
+            a.id === targetJustification.attendance_record_id ||
+            (a.user_id === targetJustification.user_id && a.date === targetJustification.date)
+        );
+        if (matchingAtt) {
+          matchingAtt.has_justification = true;
+          matchingAtt.justification_status = status;
+          if (status === 'DISAHKAN' || status === 'DILULUSKAN') {
+            matchingAtt.status = 'LENGKAP';
+          }
+          saveToStorage('attendance_records', attRecords);
+        }
+
+        // Notify PGB
+        this.addNotification({
+          recipient_id: targetJustification.user_id,
+          recipient_role: 'PGB',
+          title: status === 'DISAHKAN' || status === 'DILULUSKAN' ? 'Justifikasi Diluluskan' : 'Justifikasi Ditolak',
+          message: `Justifikasi anda bagi tarikh ${targetJustification.date} (${targetJustification.reason_category.replace(/_/g, ' ')}) telah ${status === 'DISAHKAN' || status === 'DILULUSKAN' ? 'diluluskan' : 'ditolak'}. Catatan: ${remarks || 'Tiada catatan.'}`,
+          category: 'JUSTIFICATION',
+          link: '/user/justifications',
+        });
+      }
 
       if (isSupabaseConfigured) {
         Promise.resolve(
@@ -1797,15 +1840,19 @@ export const dbService = {
     return { success: true, record: updatedRecord };
   },
 
-  getUserMonthlyStats(userId: string, month: number = 11, year: number = 2026) {
+  getUserMonthlyStats(
+    userId: string,
+    month: number = new Date().getMonth() + 1,
+    year: number = new Date().getFullYear()
+  ) {
     const records = this.getUserAttendanceRecords(userId).filter((r) => {
       const d = new Date(r.date);
       return d.getMonth() + 1 === month && d.getFullYear() === year;
     });
 
     const presentDays = records.filter((r) => !!r.clock_in_time).length;
-    const completeDays = records.filter((r) => r.status === 'LENGKAP').length;
-    const incompleteDays = records.filter((r) => r.status === 'TIDAK_LENGKAP').length;
+    const completeDays = records.filter((r) => r.status === 'LENGKAP' && !!r.clock_out_time).length;
+    const incompleteDays = records.filter((r) => (r.status === 'TIDAK_LENGKAP' || (!!r.clock_out_time && (r.total_working_minutes || 0) < 540))).length;
     const totalMinutes = records.reduce((sum, r) => sum + (r.total_working_minutes || 0), 0);
     const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
     const shortfallMinutes = records.reduce((sum, r) => {
@@ -1876,6 +1923,28 @@ export const dbService = {
       };
 
       saveToStorage('justifications', [newJustification, ...list]);
+
+      // Link and update matching attendance record if exists
+      const attRecords = this.getAttendanceRecords();
+      const matchingAtt = attRecords.find(
+        (a) =>
+          a.id === newJustification.attendance_record_id ||
+          (a.user_id === newJustification.user_id && a.date === newJustification.date)
+      );
+      if (matchingAtt) {
+        matchingAtt.has_justification = true;
+        matchingAtt.justification_status = 'MENUNGGU_SEMAKAN';
+        saveToStorage('attendance_records', attRecords);
+      }
+
+      // Notify Admins
+      this.addNotification({
+        recipient_role: 'ADMIN_ZON',
+        title: 'Permohonan Justifikasi Baharu',
+        message: `${actor.full_name} (${actor.school_name || 'Sekolah'}) telah menghantar justifikasi kehadiran bagi tarikh ${data.date}. Sila buat semakan.`,
+        category: 'JUSTIFICATION',
+        link: '/admin/attendance/justifications',
+      });
 
       logAuditEvent({
         actor_name: actor.full_name,

@@ -5,6 +5,7 @@ import {
   MapPin,
   CheckCircle2,
   AlertCircle,
+  AlertTriangle,
   FileCheck2,
   Filter,
   FileSpreadsheet,
@@ -22,13 +23,14 @@ import { Badge } from '@/components/common/Badge';
 import { SearchInput } from '@/components/common/SearchInput';
 import { EmptyState } from '@/components/common/EmptyState';
 import { exportToExcel } from '@/lib/exportExcel';
+import { getLocalDateStr, formatShortTime } from '@/lib/dateUtils';
 import { AttendanceLocationModal } from './AttendanceLocationModal';
 
 export const AttendanceMonitoringPage: React.FC = () => {
   const { user } = useAuth();
   const { showToast } = useToast();
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateStr();
   const [filterDate, setFilterDate] = useState<string>(todayStr);
   const [selectedZone, setSelectedZone] = useState<string>('ALL');
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
@@ -71,19 +73,29 @@ export const AttendanceMonitoringPage: React.FC = () => {
   }, [accessibleRecords, searchQuery, filterDate, selectedZone, selectedStatus]);
 
   const handleExport = () => {
-    const exportData = filteredRecords.map((r) => ({
-      Tarikh: r.date,
-      Nama_PGB: r.pgb_name,
-      Sekolah: r.school_name,
-      Zon: r.zone_name,
-      Waktu_Masuk: r.clock_in_time ? new Date(r.clock_in_time).toLocaleTimeString('ms-MY') : '-',
-      Waktu_Keluar: r.clock_out_time ? new Date(r.clock_out_time).toLocaleTimeString('ms-MY') : '-',
-      Jumlah_Jam: `${Math.floor(r.total_working_minutes / 60)}j ${r.total_working_minutes % 60}m`,
-      Minit_Lewat: r.late_minutes,
-      Status: r.status,
-      Wajah_Sah: r.face_verified ? 'Ya' : 'Tidak',
-      GPS_Sah: r.gps_validated ? 'Ya' : 'Tidak',
-    }));
+    const exportData = filteredRecords.map((r) => {
+      const inMs = r.clock_in_time ? new Date(r.clock_in_time).getTime() : 0;
+      const outMs = r.clock_out_time ? new Date(r.clock_out_time).getTime() : 0;
+      const actualMins = (inMs > 0 && outMs >= inMs)
+        ? Math.max(1, Math.round((outMs - inMs) / 60000))
+        : (r.total_working_minutes || 0);
+      const shortfallMins = r.clock_out_time ? Math.max(0, 540 - actualMins) : 0;
+
+      return {
+        Tarikh: r.date,
+        Nama_PGB: r.pgb_name,
+        Sekolah: r.school_name,
+        Zon: r.zone_name,
+        Waktu_Masuk: formatShortTime(r.clock_in_time),
+        Waktu_Keluar: formatShortTime(r.clock_out_time),
+        Jumlah_Jam: `${Math.floor(actualMins / 60)}j ${actualMins % 60}m`,
+        Kekurangan_Masa: shortfallMins > 0 ? `${Math.floor(shortfallMins / 60)}j ${shortfallMins % 60}m` : '0m',
+        Minit_Lewat: r.late_minutes,
+        Status: r.status,
+        Wajah_Sah: r.face_verified ? 'Ya' : 'Tidak',
+        GPS_Sah: r.gps_validated ? 'Ya' : 'Tidak',
+      };
+    });
     exportToExcel(exportData, `Pemantauan_Kehadiran_${filterDate}`, 'Kehadiran');
     showToast('Rekod kehadiran berjaya dieksport ke Excel.', 'success');
   };
@@ -212,8 +224,28 @@ export const AttendanceMonitoringPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredRecords.map((rec) => {
-                  const hours = Math.floor(rec.total_working_minutes / 60);
-                  const mins = rec.total_working_minutes % 60;
+                  const inMs = rec.clock_in_time ? new Date(rec.clock_in_time).getTime() : 0;
+                  const outMs = rec.clock_out_time ? new Date(rec.clock_out_time).getTime() : 0;
+
+                  let durationMinutes = 0;
+                  let isCurrentlyWorking = false;
+                  let remainingMinutes = 0;
+
+                  if (inMs > 0 && outMs >= inMs) {
+                    durationMinutes = Math.max(1, Math.round((outMs - inMs) / 60000));
+                  } else if (inMs > 0 && !rec.clock_out_time) {
+                    durationMinutes = Math.max(0, Math.floor((Date.now() - inMs) / 60000));
+                    isCurrentlyWorking = true;
+                    remainingMinutes = Math.max(0, 540 - durationMinutes);
+                  } else {
+                    durationMinutes = rec.total_working_minutes || 0;
+                  }
+
+                  const hours = Math.floor(durationMinutes / 60);
+                  const mins = durationMinutes % 60;
+                  const shortfallMinutes = Math.max(0, 540 - durationMinutes);
+                  const sfH = Math.floor(shortfallMinutes / 60);
+                  const sfM = shortfallMinutes % 60;
 
                   return (
                     <tr key={rec.id} className="hover:bg-slate-50/80 transition-colors">
@@ -231,10 +263,7 @@ export const AttendanceMonitoringPage: React.FC = () => {
                         {rec.clock_in_time ? (
                           <div>
                             <div className="font-mono font-bold text-slate-900">
-                              {new Date(rec.clock_in_time).toLocaleTimeString('ms-MY', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
+                              {formatShortTime(rec.clock_in_time)}
                             </div>
                             <button
                               type="button"
@@ -255,10 +284,7 @@ export const AttendanceMonitoringPage: React.FC = () => {
                         {rec.clock_out_time ? (
                           <div>
                             <div className="font-mono font-bold text-slate-900">
-                              {new Date(rec.clock_out_time).toLocaleTimeString('ms-MY', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
+                              {formatShortTime(rec.clock_out_time)}
                             </div>
                             <button
                               type="button"
@@ -277,18 +303,27 @@ export const AttendanceMonitoringPage: React.FC = () => {
 
                       <td className="px-4 py-3.5">
                         <div className="font-bold text-slate-800">
-                          {hours} jam {mins} min
+                          {rec.clock_in_time ? `${hours} jam ${mins} min` : '-'}
                         </div>
-                        {rec.total_working_minutes >= 540 ? (
-                          <span className="text-[10px] font-semibold text-emerald-600 block">
-                            ✓ Cukup 9 Jam
-                          </span>
-                        ) : rec.clock_out_time ? (
-                          <span className="text-[10px] font-semibold text-amber-600 block">
-                            Kurang {540 - rec.total_working_minutes} min
+                        {rec.clock_out_time ? (
+                          durationMinutes >= 540 ? (
+                            <span className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1 mt-0.5">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                              ✓ Cukup 9 Jam
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-semibold text-rose-600 flex items-center gap-1 mt-0.5">
+                              <AlertTriangle className="w-3 h-3 text-rose-600 shrink-0" />
+                              Kurang {sfH > 0 ? `${sfH}j ` : ''}{sfM}m
+                            </span>
+                          )
+                        ) : isCurrentlyWorking ? (
+                          <span className="text-[10px] font-semibold text-blue-600 flex items-center gap-1 mt-0.5 animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 inline-block shrink-0" />
+                            Sedang Bertugas (Baki {Math.floor(remainingMinutes / 60)}j {remainingMinutes % 60}m)
                           </span>
                         ) : (
-                          <span className="text-[10px] text-slate-400 block">
+                          <span className="text-[10px] text-slate-400 block mt-0.5">
                             Sasaran: 9 Jam
                           </span>
                         )}
@@ -334,7 +369,25 @@ export const AttendanceMonitoringPage: React.FC = () => {
                         </div>
                       </td>
 
-                      <td className="px-4 py-3.5">{getStatusBadge(rec.status)}</td>
+                      <td className="px-4 py-3.5">
+                        {rec.clock_out_time ? (
+                          durationMinutes >= 540 ? (
+                            <Badge variant="success" size="sm">Lengkap (9 Jam)</Badge>
+                          ) : rec.justification_status === 'DISAHKAN' || rec.justification_status === 'DILULUSKAN' ? (
+                            <Badge variant="success" size="sm">Lengkap (Berjustifikasi)</Badge>
+                          ) : rec.justification_status === 'MENUNGGU_SEMAKAN' ? (
+                            <Badge variant="primary" size="sm">Menunggu Semakan</Badge>
+                          ) : rec.justification_status === 'DITOLAK' ? (
+                            <Badge variant="danger" size="sm">Justifikasi Ditolak</Badge>
+                          ) : (
+                            <Badge variant="danger" size="sm">Tidak Lengkap (Kurang Jam)</Badge>
+                          )
+                        ) : isCurrentlyWorking ? (
+                          <Badge variant="primary" size="sm">Sedang Bertugas</Badge>
+                        ) : (
+                          getStatusBadge(rec.status)
+                        )}
+                      </td>
                     </tr>
                   );
                 })}

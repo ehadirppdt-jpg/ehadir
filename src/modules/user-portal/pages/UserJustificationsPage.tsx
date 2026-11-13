@@ -17,6 +17,7 @@ import { useAuth } from '@/context/AuthContext';
 import { dbService } from '@/lib/db';
 import { Justification, JustificationStatusType } from '@/types';
 import { useToast } from '@/context/ToastContext';
+import { getLocalDateStr } from '@/lib/dateUtils';
 
 export const UserJustificationsPage: React.FC = () => {
   const { user } = useAuth();
@@ -27,7 +28,7 @@ export const UserJustificationsPage: React.FC = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const [selectedCategory, setSelectedCategory] = useState<string>('URUSAN_RASMI');
-  const [incidentDate, setIncidentDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [incidentDate, setIncidentDate] = useState(() => getLocalDateStr());
   const [timeRelated, setTimeRelated] = useState('08:00');
   const [reasonText, setReasonText] = useState('');
   const [attachedFileName, setAttachedFileName] = useState('');

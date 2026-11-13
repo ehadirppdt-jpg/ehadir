@@ -15,12 +15,13 @@ import { useAuth } from '@/context/AuthContext';
 import { dbService } from '@/lib/db';
 import { exportToPdf } from '@/lib/exportPdf';
 import { AttendanceRecord } from '@/types';
-import { formatLocalTime } from '@/lib/dateUtils';
+import { formatLocalTime, getLocalDateStr } from '@/lib/dateUtils';
 
 export const UserAttendanceHistoryPage: React.FC = () => {
   const { user } = useAuth();
+  const currentYear = new Date().getFullYear();
   const [selectedMonth, setSelectedMonth] = useState<string>('ALL');
-  const [selectedYear, setSelectedYear] = useState<string>('2026');
+  const [selectedYear, setSelectedYear] = useState<string>(() => String(currentYear));
   const [selectedStatus, setSelectedStatus] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -91,7 +92,7 @@ export const UserAttendanceHistoryPage: React.FC = () => {
       subtitle: `Sekolah: ${user.school_name} | Kod: ${user.id} | Sasaran Bertugas: Minimum 9 Jam Sehari`,
       headers,
       rows,
-      fileName: `sejarah-kehadiran-${user.id}-${new Date().toISOString().split('T')[0]}.pdf`,
+      fileName: `sejarah-kehadiran-${user.id}-${getLocalDateStr()}.pdf`,
     });
   };
 
@@ -165,8 +166,9 @@ export const UserAttendanceHistoryPage: React.FC = () => {
             className="px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
           >
             <option value="ALL">Semua Tahun</option>
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
+            <option value={String(currentYear)}>{currentYear}</option>
+            <option value={String(currentYear - 1)}>{currentYear - 1}</option>
+            {currentYear !== 2026 && <option value="2026">2026</option>}
           </select>
 
           {/* Status filter */}
@@ -234,7 +236,7 @@ export const UserAttendanceHistoryPage: React.FC = () => {
                         </span>
                         {r.shortfall_minutes ? (
                           <span className="text-[10px] text-rose-600 block font-semibold">
-                            Kurang {r.shortfall_minutes} minit
+                            Kurang {Math.floor(r.shortfall_minutes / 60) > 0 ? `${Math.floor(r.shortfall_minutes / 60)}j ` : ''}{r.shortfall_minutes % 60}m
                           </span>
                         ) : null}
                       </td>
@@ -251,6 +253,8 @@ export const UserAttendanceHistoryPage: React.FC = () => {
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold ${
                             r.status === 'LENGKAP'
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : r.justification_status === 'MENUNGGU_SEMAKAN'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
                               : 'bg-rose-50 text-rose-700 border border-rose-200'
                           }`}
                         >
@@ -259,7 +263,11 @@ export const UserAttendanceHistoryPage: React.FC = () => {
                           ) : (
                             <AlertTriangle className="w-3 h-3" />
                           )}
-                          {r.status}
+                          {r.status === 'LENGKAP'
+                            ? (r.justification_status === 'DISAHKAN' || r.justification_status === 'DILULUSKAN' ? 'LENGKAP (BERJUSTIFIKASI)' : 'LENGKAP')
+                            : r.justification_status === 'MENUNGGU_SEMAKAN'
+                            ? 'MENUNGGU SEMAKAN'
+                            : 'TIDAK LENGKAP'}
                         </span>
                       </td>
                     </tr>

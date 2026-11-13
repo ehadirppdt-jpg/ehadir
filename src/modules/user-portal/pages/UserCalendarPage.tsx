@@ -14,6 +14,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { dbService } from '@/lib/db';
 import { AttendanceRecord, HolidayRecord } from '@/types';
+import { getLocalDateStr } from '@/lib/dateUtils';
 
 interface UserCalendarPageProps {
   onNavigate: (path: string) => void;
@@ -77,7 +78,10 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
     } else if (holiday) {
       statusType = holiday.type === 'SCHOOL_TERM' ? 'PURPLE' : 'BLUE';
     } else if (attendance) {
-      if (attendance.status === 'LENGKAP') {
+      const isToday = dateStr === getLocalDateStr();
+      if (attendance.clock_in_time && !attendance.clock_out_time && isToday) {
+        statusType = 'BLUE'; // Sedang bertugas hari ini!
+      } else if (attendance.status === 'LENGKAP') {
         statusType = 'GREEN';
       } else if (
         attendance.status === 'TIDAK_LENGKAP' ||
@@ -89,7 +93,9 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
         statusType = 'YELLOW';
       }
     } else {
-      const isPast = dayDate < new Date();
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const isPast = dayDate < todayStart;
       statusType = isPast ? 'RED' : 'DEFAULT';
     }
 
@@ -308,7 +314,9 @@ export const UserCalendarPage: React.FC<UserCalendarPageProps> = ({ onNavigate }
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-gray-500 font-medium">Kekurangan Jam:</span>
                     <span className="font-semibold text-rose-600">
-                      {selectedDayRecord.attendance.shortfall_minutes || 0} minit
+                      {selectedDayRecord.attendance.shortfall_minutes
+                        ? `${Math.floor(selectedDayRecord.attendance.shortfall_minutes / 60)}j ${selectedDayRecord.attendance.shortfall_minutes % 60}m (${selectedDayRecord.attendance.shortfall_minutes} min)`
+                        : '0 minit'}
                     </span>
                   </div>
 

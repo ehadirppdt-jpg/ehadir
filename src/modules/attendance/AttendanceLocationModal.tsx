@@ -440,3 +440,4 @@ export const AttendanceLocationModal: React.FC<AttendanceLocationModalProps> = (
     </div>
   );
 };
+

@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { Zone } from '@/types';
 import { dbService } from '@/lib/db';
+import { getLocalDateStr } from '@/lib/dateUtils';
 
 interface AttendanceChartsProps {
   zones: Zone[];
@@ -40,7 +41,7 @@ export const AttendanceCharts: React.FC<AttendanceChartsProps> = ({ zones }) => 
       const dayName = dayNames[d.getDay()];
       const dayNum = String(d.getDate()).padStart(2, '0');
       const monthName = monthNames[d.getMonth()];
-      const dateStr = d.toISOString().split('T')[0];
+      const dateStr = getLocalDateStr(d);
       days.push({
         day: `${dayName} (${dayNum} ${monthName})`,
         dateStr,
@@ -97,7 +98,7 @@ export const AttendanceCharts: React.FC<AttendanceChartsProps> = ({ zones }) => 
   const currentMonthName = new Date().toLocaleDateString('ms-MY', { month: 'long', year: 'numeric' });
 
   // 3. Zone statistics mapped dynamically
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateStr();
   const zoneStatsData = zones.map((z) => {
     const zoneSchools = schools.filter((s) => s.zone_id === z.id);
     const zoneSchoolIds = new Set(zoneSchools.map((s) => s.id));
